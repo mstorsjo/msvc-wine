@@ -1,0 +1,14 @@
+[binaries]
+c = 'cl'
+cpp = 'cl'
+ar = 'lib'
+windres = 'rc'
+
+[properties]
+c_args = ['-DWINAPI_FAMILY=WINAPI_FAMILY_APP']
+
+[host_machine]
+system = 'windows'
+cpu_family = 'arm'
+cpu = 'armv7'
+endian = 'little'

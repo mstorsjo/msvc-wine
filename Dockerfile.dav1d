@@ -1,0 +1,48 @@
+ARG BASE=msvc-wine
+FROM $BASE
+
+# Meson needs python3, building dav1d requires nasm.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git ninja-build python3 nasm
+
+WORKDIR /opt
+RUN git clone https://github.com/mesonbuild/meson && \
+    cd meson && \
+    git checkout 9d8906363ecd682b4b03064a862fd17069a70df4
+
+ENV PATH=/opt/meson:$PATH
+
+WORKDIR /build
+RUN git clone https://code.videolan.org/videolan/dav1d.git && \
+    cd dav1d && \
+    git checkout f90ada0d08e99ccfb676e59b8e3c497e77879915
+
+COPY cross-msvc-x86_64.txt dav1d/
+RUN wineserver -p && \
+    wine64 wineboot && \
+    cd dav1d && \
+    mkdir build-msvc-x86_64 && \
+    cd build-msvc-x86_64 && \
+    export PATH=/opt/msvc/bin/x64:$PATH && \
+    meson.py --cross-file=../cross-msvc-x86_64.txt .. && \
+    ninja && \
+    meson.py test -v
+
+WORKDIR /opt
+RUN git clone https://github.com/FFmpeg/gas-preprocessor.git && \
+    cd gas-preprocessor && \
+    git checkout 4daa611556a0558dfe537b4f7ad80f7e50a079c1
+
+ENV PATH=/opt/gas-preprocessor:$PATH
+
+WORKDIR /build
+
+COPY cross-msvc-arm64.txt dav1d/
+RUN wineserver -p && \
+    wine64 wineboot && \
+    cd dav1d && \
+    mkdir build-msvc-arm64 && \
+    cd build-msvc-arm64 && \
+    export PATH=/opt/msvc/bin/arm64:$PATH && \
+    meson.py --cross-file=../cross-msvc-arm64.txt .. && \
+    ninja
