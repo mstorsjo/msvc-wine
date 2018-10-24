@@ -1,0 +1,25 @@
+ARG BASE=msvc-wine
+FROM $BASE
+
+RUN apt-get update && \
+    apt-get install -y git make
+
+WORKDIR /opt
+RUN git clone https://github.com/FFmpeg/gas-preprocessor.git && \
+    cd gas-preprocessor && \
+    git checkout 4daa611556a0558dfe537b4f7ad80f7e50a079c1
+
+ENV PATH=/opt/gas-preprocessor:$PATH
+
+WORKDIR /build
+RUN git clone git://git.videolan.org/ffmpeg && \
+    cd ffmpeg && \
+    git checkout n4.4.1
+
+RUN wineserver -p && \
+    wine64 wineboot && \
+    mkdir ffmpeg-msvc-arm64 && \
+    cd ffmpeg-msvc-arm64 && \
+    export PATH=/opt/msvc/bin/arm64:$PATH && \
+    ../ffmpeg/configure --arch=arm64 --target-os=win32 --toolchain=msvc --enable-cross-compile --disable-debug --disable-doc && \
+    make -j$(nproc)
