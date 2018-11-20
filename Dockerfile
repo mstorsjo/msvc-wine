@@ -24,9 +24,14 @@ RUN curl -LO $MSVC_URL && \
     mv Include include && \
     cd ../.. && \
     rm $(basename $MSVC_URL) $(basename $SDK_URL) && \
+    if [ -d kits/10/Redist/10.*/ucrt/DLLs ]; then \
+        REDIST=$(echo kits/10/Redist/10.*/ucrt/DLLs); \
+    else \
+        REDIST=kits/10/Redist/ucrt/DLLs; \
+    fi && \
     for arch in x86 x64 arm arm64; do \
-        cp kits/10/Redist/ucrt/DLLs/x86/* vc/tools/msvc/*/bin/Hostx86/$arch || exit 1; \
-        cp kits/10/Redist/ucrt/DLLs/x64/* vc/tools/msvc/*/bin/Hostx64/$arch || exit 1; \
+        cp $REDIST/x86/* vc/tools/msvc/*/bin/Hostx86/$arch || exit 1; \
+        cp $REDIST/x64/* vc/tools/msvc/*/bin/Hostx64/$arch || exit 1; \
     done && \
     SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}')) && \
     ./lowercase kits/10/include/$SDKVER/um && \
