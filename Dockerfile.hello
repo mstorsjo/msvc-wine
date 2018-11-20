@@ -1,4 +1,5 @@
-FROM msvc-wine
+ARG BASE=msvc-wine
+FROM $BASE
 
 COPY hello.c ./
 
