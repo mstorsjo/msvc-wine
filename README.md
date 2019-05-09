@@ -5,8 +5,8 @@ This is a reproducible Dockerfile for cross compiling with MSVC on Linux,
 usable as base image for CI style setups.
 
 This requires a zipped package of a real MSVC installation from Windows
-(currently only supporting MSVC 2017, tested with 15.8 and 15.9), which
-isn't redistributable.
+(currently only supporting MSVC 2017 and 2019, tested with 15.8 and 15.9
+and 16.0), which isn't redistributable.
 
 To build the docker image, zip (Send to, Compressed (zipped) folder)
 the following directories:
