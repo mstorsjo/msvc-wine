@@ -9,46 +9,12 @@ WORKDIR /opt/msvc2017
 ARG MSVC_URL
 ARG SDK_URL
 
-COPY lowercase fixinclude ./
+COPY lowercase fixinclude install.sh ./
+COPY wrappers/* ./wrappers/
 RUN curl -LO $MSVC_URL && \
     curl -LO $SDK_URL && \
-    unzip $(basename $MSVC_URL) && \
-    mv VC vc && \
-    mv vc/Tools vc/tools && \
-    mv vc/tools/MSVC vc/tools/msvc && \
-    mkdir kits && \
-    cd kits && \
-    unzip ../$(basename $SDK_URL) && \
-    cd 10 && \
-    mv Lib lib && \
-    mv Include include && \
-    cd ../.. && \
-    rm $(basename $MSVC_URL) $(basename $SDK_URL) && \
-    if [ -d kits/10/Redist/10.*/ucrt/DLLs ]; then \
-        REDIST=$(echo kits/10/Redist/10.*/ucrt/DLLs); \
-    else \
-        REDIST=kits/10/Redist/ucrt/DLLs; \
-    fi && \
-    SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}')) && \
-    ./lowercase kits/10/include/$SDKVER/um && \
-    ./lowercase kits/10/include/$SDKVER/shared && \
-    ./fixinclude kits/10/include/$SDKVER/um && \
-    ./fixinclude kits/10/include/$SDKVER/shared && \
-    for arch in x86 x64 arm arm64; do \
-        ./lowercase kits/10/lib/$SDKVER/um/$arch || exit 1; \
-    done && \
-    rm lowercase fixinclude
-
-COPY wrappers/* ./wrappers/
-RUN SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}')) && \
-    MSVCVER=$(basename $(echo vc/tools/msvc/* | awk '{print $NF}')) && \
-    cat wrappers/msvcenv.sh | sed 's/MSVCVER=.*/MSVCVER='$MSVCVER/ | sed 's/SDKVER=.*/SDKVER='$SDKVER/ > tmp && \
-    mv tmp wrappers/msvcenv.sh && \
-    for arch in x86 x64 arm arm64; do \
-        mkdir -p bin/$arch && \
-        cp wrappers/* bin/$arch && \
-        cat wrappers/msvcenv.sh | sed 's/ARCH=.*/ARCH='$arch/ > bin/$arch/msvcenv.sh || exit 1; \
-    done && \
+    ./install.sh $(basename $MSVC_URL) $(basename $SDK_URL) /opt/msvc2017 && \
+    rm $(basename $MSVC_URL) $(basename $SDK_URL) lowercase fixinclude install.sh && \
     rm -rf wrappers
 
 # Initialize the wine environment. Wait until the wineserver process has
