@@ -2,28 +2,38 @@
 
 set -e
 
-if [ $# -lt 3 ]; then
-    echo $0 vc.zip sdk.zip target
+if [ $# -lt 1 ]; then
+    echo $0 {vc.zip sdk.zip target|target}
     exit 0
 fi
 
-VC_ZIP=$(cd $(dirname $1) && pwd)/$(basename $1)
-SDK_ZIP=$(cd $(dirname $2) && pwd)/$(basename $2)
-DEST=$3
+if [ $# -eq 3 ]; then
+    VC_ZIP=$(cd $(dirname $1) && pwd)/$(basename $1)
+    SDK_ZIP=$(cd $(dirname $2) && pwd)/$(basename $2)
+    DEST=$3
+else
+    DEST=$1
+fi
 ORIG=$(cd $(dirname $0) && pwd)
 
 mkdir -p $DEST
 cd $DEST
 DEST=$(pwd)
 
-unzip $VC_ZIP
+if [ -n "$VC_ZIP" ]; then
+    unzip $VC_ZIP
+fi
 mv VC vc
 mv vc/Tools vc/tools
 mv vc/tools/MSVC vc/tools/msvc
-mkdir kits
-cd kits
-unzip $SDK_ZIP
-cd 10
+if [ -d kits/10 ]; then
+    cd kits/10
+else
+    mkdir kits
+    cd kits
+    unzip $SDK_ZIP
+    cd 10
+fi
 mv Lib lib
 mv Include include
 cd ../..
