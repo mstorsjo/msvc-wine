@@ -6,7 +6,7 @@ RUN dpkg --add-architecture i386 && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/msvc2017
+WORKDIR /opt/msvc
 
 ARG MSVC_URL
 ARG SDK_URL
@@ -15,7 +15,7 @@ COPY lowercase fixinclude install.sh ./
 COPY wrappers/* ./wrappers/
 RUN curl -LO $MSVC_URL && \
     curl -LO $SDK_URL && \
-    ./install.sh $(basename $MSVC_URL) $(basename $SDK_URL) /opt/msvc2017 && \
+    ./install.sh $(basename $MSVC_URL) $(basename $SDK_URL) /opt/msvc && \
     rm $(basename $MSVC_URL) $(basename $SDK_URL) lowercase fixinclude install.sh && \
     rm -rf wrappers
 

@@ -19,6 +19,6 @@ Host the zip files somewhere, then build the docker image like this:
     docker build --build-arg MSVC_URL=http://path/to/your/VC.zip --build-arg SDK_URL=http://path/to/your/10.zip .
 
 After building the docker image, there are 4 directories with tools,
-in `/opt/msvc2017/bin/<arch>`, for all architectures out of `x86`,
+in `/opt/msvc/bin/<arch>`, for all architectures out of `x86`,
 `x64`, `arm` and `arm64`, that should be added to the PATH before building
 with it.
