@@ -2,7 +2,9 @@ FROM ubuntu:18.04
 
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
-    apt-get install -y unzip curl wine-development
+    apt-get install -y unzip curl wine-development && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/msvc2017
 
