@@ -260,6 +260,8 @@ def printReverseDepends(packages, target, deptype, indent, args):
 
 def getPackageKey(p):
     packagekey = p["id"]
+    if "version" in p:
+        packagekey = packagekey + "-" + p["version"]
     if "chip" in p:
         packagekey = packagekey + "-" + p["chip"]
     return packagekey
