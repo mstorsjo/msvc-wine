@@ -29,7 +29,7 @@ import zipfile
 def getArgsParser():
     parser = argparse.ArgumentParser(description = "Download and install Visual Studio")
     parser.add_argument("--manifest", metavar="manifest", help="A predownloaded manifest file")
-    parser.add_argument("--save-manifest", metavar="manifest", help="Store the downloaded manifest to a file")
+    parser.add_argument("--save-manifest", const=True, action="store_const", help="Store the downloaded manifest to a file")
     parser.add_argument("--major", default=16, metavar="version", help="The major version to download (defaults to 16)")
     parser.add_argument("--preview", dest="type", default="release", const="pre", action="store_const", help="Download the preview version instead of the release version")
     parser.add_argument("--cache", metavar="dir", help="Directory to use as a persistent cache for downloaded files")
@@ -134,14 +134,23 @@ def getManifest(args):
         args.manifest = "file:" + args.manifest
 
     manifestdata = six.moves.urllib.request.urlopen(args.manifest).read()
-    if args.save_manifest != None:
-        f = open(args.save_manifest, "w")
-        f.write(manifestdata)
-        f.close()
-        print("Saved installer manifest to %s" % (args.save_manifest))
-
     manifest = simplejson.loads(manifestdata)
     print("Loaded installer manifest for %s" % (manifest["info"]["productDisplayVersion"]))
+
+    if args.save_manifest:
+        filename = "%s.manifest" % (manifest["info"]["productDisplayVersion"])
+        if os.path.isfile(filename):
+            oldfile = open(filename, "r").read()
+            if oldfile != manifestdata:
+                print("Old saved manifest in %s differs from newly downloaded one, not overwriting!" % (filename))
+            else:
+                print("Old saved manifest in %s is still current" % (filename))
+        else:
+            f = open(filename, "w")
+            f.write(manifestdata)
+            f.close()
+            print("Saved installer manifest to %s" % (filename))
+
     return manifest
 
 def prioritizePackage(a, b):
