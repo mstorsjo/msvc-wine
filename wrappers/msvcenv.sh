@@ -2,8 +2,8 @@
 
 SDK=kits\\10
 SDK_UNIX=kits/10
-BASE=z:\\opt\\msvc2017
-BASE_UNIX=/opt/msvc2017
+BASE=z:\\opt\\msvc
+BASE_UNIX=/opt/msvc
 MSVCVER=14.13.26128
 SDKVER=10.0.16299.0
 ARCH=x86
