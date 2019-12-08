@@ -142,14 +142,14 @@ def getManifest(args):
         if os.path.isfile(filename):
             oldfile = open(filename, "r").read()
             if oldfile != manifestdata:
-                print("Old saved manifest in %s differs from newly downloaded one, not overwriting!" % (filename))
+                print("Old saved manifest in \"%s\" differs from newly downloaded one, not overwriting!" % (filename))
             else:
-                print("Old saved manifest in %s is still current" % (filename))
+                print("Old saved manifest in \"%s\" is still current" % (filename))
         else:
             f = open(filename, "w")
             f.write(manifestdata)
             f.close()
-            print("Saved installer manifest to %s" % (filename))
+            print("Saved installer manifest to \"%s\"" % (filename))
 
     return manifest
 
