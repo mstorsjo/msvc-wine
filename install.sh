@@ -37,11 +37,6 @@ fi
 mv Lib lib
 mv Include include
 cd ../..
-if [ -d kits/10/Redist/10.*/ucrt/DLLs ]; then
-    REDIST=$(echo kits/10/Redist/10.*/ucrt/DLLs)
-else
-    REDIST=kits/10/Redist/ucrt/DLLs
-fi
 SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
 $ORIG/lowercase kits/10/include/$SDKVER/um
 $ORIG/lowercase kits/10/include/$SDKVER/shared
