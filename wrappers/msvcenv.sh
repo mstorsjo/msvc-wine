@@ -15,4 +15,4 @@ SDKBINDIR=$BASE_UNIX/$SDK_UNIX/bin/$SDKVER/x64
 export INCLUDE="$MSVCDIR\\include;$SDKINCLUDE\\shared;$SDKINCLUDE\\ucrt;$SDKINCLUDE\\um;$SDKINCLUDE\\winrt"
 export LIB="$MSVCDIR\\lib\\$ARCH;$SDKLIB\\ucrt\\$ARCH;$SDKLIB\\um\\$ARCH"
 export LIBPATH="$LIB"
-export WINEPATH="$MSVCDIR\\bin\\Hostx64\\x64"
+export WINEPATH="${BINDIR//\//\\};${SDKBINDIR//\//\\}"
