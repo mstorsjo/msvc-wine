@@ -17,3 +17,4 @@ export LIB="$MSVCDIR\\lib\\$ARCH;$SDKLIB\\ucrt\\$ARCH;$SDKLIB\\um\\$ARCH"
 export LIBPATH="$LIB"
 # "$MSVCDIR\\bin\\Hostx64\\x64" is included in PATH for DLLs.
 export WINEPATH="${BINDIR//\//\\};${SDKBINDIR//\//\\};$MSVCDIR\\bin\\Hostx64\\x64"
+export WINEDLLOVERRIDES="vcruntime140_1=n"
