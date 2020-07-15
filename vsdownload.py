@@ -146,7 +146,7 @@ def getManifest(args):
             else:
                 print("Old saved manifest in \"%s\" is still current" % (filename))
         else:
-            f = open(filename, "w")
+            f = open(filename, "wb")
             f.write(manifestdata)
             f.close()
             print("Saved installer manifest to \"%s\"" % (filename))
