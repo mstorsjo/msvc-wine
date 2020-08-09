@@ -18,9 +18,11 @@ import argparse
 import functools
 import hashlib
 import os
+import multiprocessing.pool
 import simplejson
 import six
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -370,9 +372,9 @@ def getPayloadName(payload):
     return name
 
 def downloadPackages(selected, cache, allowHashMismatch = False):
+    pool = multiprocessing.Pool(5)
+    tasks = []
     makedirs(cache)
-
-    downloaded = 0
     for p in selected:
         if not "payloads" in p:
             continue
@@ -382,6 +384,17 @@ def downloadPackages(selected, cache, allowHashMismatch = False):
             name = getPayloadName(payload)
             destname = os.path.join(dir, name)
             fileid = os.path.join(getPackageKey(p), name)
+            args = (payload, destname, fileid, allowHashMismatch)
+            tasks.append(pool.apply_async(_downloadPayload, args))
+
+    downloaded = sum(task.get() for task in tasks)
+    pool.close()
+    print("Downloaded %s in total" % (formatSize(downloaded)))
+
+def _downloadPayload(payload, destname, fileid, allowHashMismatch):
+    attempts = 5
+    for attempt in range(attempts):
+        try:
             if os.access(destname, os.F_OK):
                 if "sha256" in payload:
                     if sha256File(destname).lower() != payload["sha256"].lower():
@@ -389,23 +402,25 @@ def downloadPackages(selected, cache, allowHashMismatch = False):
                         os.remove(destname)
                     else:
                         print("Using existing file %s" % (fileid))
-                        continue
+                        return 0
                 else:
-                    continue
+                    return 0
             size = 0
             if "size" in payload:
                 size = payload["size"]
             print("Downloading %s (%s)" % (fileid, formatSize(size)))
             six.moves.urllib.request.urlretrieve(payload["url"], destname)
-            downloaded = downloaded + size
             if "sha256" in payload:
                 if sha256File(destname).lower() != payload["sha256"].lower():
                     if allowHashMismatch:
                         print("WARNING: Incorrect hash for downloaded file %s" % (fileid))
                     else:
-                        print("Incorrect hash for downloaded file %s, aborting" % (fileid))
-                        sys.exit(1)
-    print("Downloaded %s in total" % (formatSize(downloaded)))
+                        raise Exception("Incorrect hash for downloaded file %s, aborting" % fileid)
+            return size
+        except Exception as e:
+            if attempt == attempts - 1:
+                raise
+            print("%s: %s" % (type(e).__name__, e))
 
 def mergeTrees(src, dest):
     if not os.path.isdir(src):
@@ -501,6 +516,8 @@ if __name__ == "__main__":
     parser = getArgsParser()
     args = parser.parse_args()
     lowercaseIgnores(args)
+
+    socket.setdefaulttimeout(15)
 
     packages = getPackages(getManifest(args))
 
