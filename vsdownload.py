@@ -466,7 +466,7 @@ def unpackWin10SDK(src, payloads, dest):
             print("Extracting " + name)
             srcfile = os.path.join(src, name)
             log = open(os.path.join(dest, "WinSDK-" + getPayloadName(payload) + "-listing.txt"), "w")
-            subprocess.call(["msiextract", "-C", dest, srcfile], stdout=log)
+            subprocess.check_call(["msiextract", "-C", dest, srcfile], stdout=log)
             log.close()
 
 def extractPackages(selected, cache, dest):
