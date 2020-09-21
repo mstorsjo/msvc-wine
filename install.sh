@@ -26,6 +26,22 @@ fi
 mv VC vc
 mv vc/Tools vc/tools
 mv vc/tools/MSVC vc/tools/msvc
+
+# Add symlinks like LIBCMT.lib -> libcmt.lib. These are properly lowercased
+# out of the box, but MSVC produces directives like /DEFAULTLIB:"LIBCMT"
+# /DEFAULTLIB:"OLDNAMES", which lld-link doesn't find on a case sensitive
+# filesystem. Therefore add matching case symlinks for this, to allow
+# linking MSVC built objects with lld-link.
+cd $(echo vc/tools/msvc/* | awk '{print $1}')/lib
+for arch in x86 x64 arm arm64; do
+    cd $arch
+    for i in libcmt libcmtd msvcrt msvcrtd oldnames; do
+        ln -s $i.lib $(echo $i | tr [a-z] [A-Z]).lib
+    done
+    cd ..
+done
+cd "$DEST"
+
 if [ -d kits/10 ]; then
     cd kits/10
 else
