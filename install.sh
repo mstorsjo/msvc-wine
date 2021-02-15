@@ -3,7 +3,7 @@
 set -e
 
 if [ $# -lt 1 ]; then
-    echo $0 {vc.zip sdk.zip target|target}
+    echo $0 {vc.zip sdk.zip target\|target}
     exit 0
 fi
 
