@@ -6,7 +6,7 @@ while [ $# -gt 0 ]; do
 	a=$1
 	case $a in
 	/*)
-		if [ -d "$(dirname $a)" ] && [ "$(dirname $a)" != "/" ]; then
+		if [ -d "$(dirname "$a")" ] && [ "$(dirname "$a")" != "/" ]; then
 			a=z:$a
 		fi
 		;;
