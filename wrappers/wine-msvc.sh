@@ -1,4 +1,5 @@
 #!/bin/bash
+IFS=""
 EXE=$1
 shift
 ARGS=()
