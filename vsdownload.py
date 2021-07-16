@@ -282,7 +282,7 @@ def aggregateDepends(packages, included, target, chip, args):
         return []
     p = findPackage(packages, target, chip)
     if p == None:
-        return
+        return []
     packagekey = getPackageKey(p)
     if packagekey in included:
         return []
