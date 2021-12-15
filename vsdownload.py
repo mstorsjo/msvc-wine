@@ -19,7 +19,10 @@ import functools
 import hashlib
 import os
 import multiprocessing.pool
-import simplejson
+try:
+    import simplejson
+except ModuleNotFoundError:
+    import json as simplejson
 import six
 import shutil
 import socket
