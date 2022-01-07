@@ -90,8 +90,6 @@ def setPackageSelection(args, packages):
     # If no packages are selected, install these versionless packages, which
     # gives the latest/recommended version for the current manifest.
     defaultPackages = ["Microsoft.VisualStudio.Workload.VCTools", "Microsoft.VisualStudio.Component.VC.Tools.ARM", "Microsoft.VisualStudio.Component.VC.Tools.ARM64"]
-    if len(args.package) == 0:
-        args.package = defaultPackages
 
     if getattr(args, "msvc_16.0"):
         setPackageSelectionMSVC16(args, packages, "16.0", "10.0.17763", "14.20", defaultPackages)
@@ -114,6 +112,9 @@ def setPackageSelection(args, packages):
         setPackageSelectionMSVC15(args, packages, "15.8", "10.0.17134", "14.15", defaultPackages)
     if getattr(args, "msvc_15.9"):
         setPackageSelectionMSVC15(args, packages, "15.9", "10.0.17763", "14.16", defaultPackages)
+
+    if len(args.package) == 0:
+        args.package = defaultPackages
 
 def lowercaseIgnores(args):
     ignore = []
