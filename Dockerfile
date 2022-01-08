@@ -1,7 +1,8 @@
-FROM ubuntu:20.04
+FROM ubuntu:21.10
 
 RUN apt-get update && \
-    apt-get install -y wine64-development python3 msitools python3-simplejson \
+    DEBIAN_FRONTEND="noninteractive" apt-get install -y wine64-development \
+                       python3 msitools python3-simplejson \
                        python3-six ca-certificates && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
