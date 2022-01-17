@@ -146,7 +146,7 @@ def getManifest(args):
     if args.save_manifest:
         filename = "%s.manifest" % (manifest["info"]["productDisplayVersion"])
         if os.path.isfile(filename):
-            oldfile = open(filename, "r").read()
+            oldfile = open(filename, "rb").read()
             if oldfile != manifestdata:
                 print("Old saved manifest in \"%s\" differs from newly downloaded one, not overwriting!" % (filename))
             else:
