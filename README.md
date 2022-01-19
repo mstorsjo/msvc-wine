@@ -53,9 +53,9 @@ We're going to install it into `~/my_msvc` to avoid needing root privileges on a
 ./install.sh ~/my_msvc/opt/msvc
 
 # Custom CMake
-git clone https://gitlab.kitware.com/mstorsjo/cmake
+git clone https://gitlab.kitware.com/mstorsjo/cmake.git
 cd cmake
-git checkout 8c1957b8026c60d50a705555a3a212c9217c0a2e
+git checkout 844ccd2280d11ada286d0e2547c0fa5ff22bd4db
 mkdir build 
 cd build
 ../configure --prefix=~/my_msvc/opt/cmake --parallel=$(nproc) -- -DCMAKE_USE_OPENSSL=OFF
