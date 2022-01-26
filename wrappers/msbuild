@@ -14,7 +14,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-. $(dirname $0)/msvcenv.sh
+. "$(dirname "$0")"/msvcenv.sh
 
 # By default, the platform-specific settings for the current project override
 # the PATH, INCLUDE, LIB, LIBPATH, CONFIGURATION, and PLATFORM environment
@@ -93,4 +93,4 @@ if [[ "${MSBUILDBINDIR}" == *amd64 ]]; then
 fi
 
 export WINE_MSVC_RAW_STDOUT=1
-$(dirname $0)/wine-msvc.sh ${MSBUILDBINDIR}/MSBuild.exe "$@"
+"$(dirname "$0")"/wine-msvc.sh "${MSBUILDBINDIR}"/MSBuild.exe "$@"

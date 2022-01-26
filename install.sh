@@ -17,21 +17,21 @@
 set -e
 
 if [ $# -lt 1 ]; then
-    echo $0 {vc.zip sdk.zip target\|target}
+    echo "$0 {vc.zip sdk.zip target|target}"
     exit 0
 fi
 
 if [ $# -eq 3 ]; then
-    VC_ZIP=$(cd $(dirname $1) && pwd)/$(basename $1)
-    SDK_ZIP=$(cd $(dirname $2) && pwd)/$(basename $2)
+    VC_ZIP=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
+    SDK_ZIP=$(cd "$(dirname "$2")" && pwd)/$(basename "$2")
     DEST=$3
 else
     DEST=$1
 fi
-ORIG=$(cd $(dirname $0) && pwd)
+ORIG=$(cd "$(dirname "$0")" && pwd)
 
-mkdir -p $DEST
-cd $DEST
+mkdir -p "$DEST"
+cd "$DEST"
 DEST=$(pwd)
 
 ln_s() {
@@ -41,7 +41,7 @@ ln_s() {
 }
 
 if [ -n "$VC_ZIP" ]; then
-    unzip $VC_ZIP
+    unzip "$VC_ZIP"
 fi
 ln_s "Windows Kits" kits
 ln_s VC vc
@@ -71,8 +71,8 @@ cd ..
 # Thus process them to reference the other headers with lowercase names.
 # Also lowercase these files, as a few of them do have non-lowercase names,
 # and the call to fixinclude lowercases those references.
-$ORIG/lowercase -symlink include
-$ORIG/fixinclude include
+"$ORIG"/lowercase -symlink include
+"$ORIG"/fixinclude include
 cd bin
 # vctip.exe is known to cause problems at some times; just remove it.
 # See https://bugs.chromium.org/p/chromium/issues/detail?id=735226 and
@@ -99,7 +99,7 @@ if [ -d kits/10 ]; then
 else
     mkdir kits
     cd kits
-    unzip $SDK_ZIP
+    unzip "$SDK_ZIP"
     cd 10
 fi
 ln_s Lib lib
@@ -129,16 +129,16 @@ for incdir in um shared winrt km; do
     SDK_INCDIR="kits/10/include/$SDKVER/$incdir"
 
     if [ -d "$SDK_INCDIR" ]; then
-        $ORIG/lowercase -map_winsdk -symlink "$SDK_INCDIR"
-        $ORIG/fixinclude -map_winsdk "$SDK_INCDIR"
+        "$ORIG"/lowercase -map_winsdk -symlink "$SDK_INCDIR"
+        "$ORIG"/fixinclude -map_winsdk "$SDK_INCDIR"
     fi
 done
 
 # The WDF is a part of the Windows Driver Kit.
 WDF_INCDIR="kits/10/include/wdf"
 if [ -d "$WDF_INCDIR" ]; then
-    $ORIG/lowercase -map_winsdk -symlink "$WDF_INCDIR"
-    $ORIG/fixinclude -map_winsdk "$WDF_INCDIR"
+    "$ORIG"/lowercase -map_winsdk -symlink "$WDF_INCDIR"
+    "$ORIG"/fixinclude -map_winsdk "$WDF_INCDIR"
 fi
 
 for arch in x86 x64 arm arm64; do
@@ -146,10 +146,10 @@ for arch in x86 x64 arm arm64; do
     DDK_LIBDIR="kits/10/lib/$SDKVER/km/$arch"
 
     if [ -d "$SDK_LIBDIR" ]; then
-        $ORIG/lowercase -symlink "$SDK_LIBDIR"
+        "$ORIG"/lowercase -symlink "$SDK_LIBDIR"
     fi
     if [ -d "$DDK_LIBDIR" ]; then
-        $ORIG/lowercase -symlink "$DDK_LIBDIR"
+        "$ORIG"/lowercase -symlink "$DDK_LIBDIR"
     fi
 done
 
@@ -169,7 +169,7 @@ if [ -d "VC/Tools/MSVC/$MSVCVER/modules" ]; then
     ln_s VC/Tools/MSVC/$MSVCVER/modules modules
 fi
 
-cat $ORIG/wrappers/msvcenv.sh \
+cat "$ORIG"/wrappers/msvcenv.sh \
 | sed 's/MSVCVER=.*/MSVCVER='$MSVCVER/ \
 | sed 's/SDKVER=.*/SDKVER='$SDKVER/ \
 | sed s/x64/$host/ \
@@ -181,14 +181,14 @@ for arch in x86 x64 arm arm64; do
         continue
     fi
     mkdir -p bin/$arch
-    cp -a $ORIG/wrappers/* bin/$arch
+    cp -a "$ORIG"/wrappers/* bin/$arch
     cat msvcenv.sh | sed 's/ARCH=.*/ARCH='$arch/ > bin/$arch/msvcenv.sh
 done
 rm msvcenv.sh
 
 if [ -d "$DEST/bin/$host" ]; then
     if WINE="$(command -v wine64 || command -v wine)"; then
-        WINEDEBUG=-all ${WINE} wineboot &>/dev/null
+        WINEDEBUG=-all "${WINE}" wineboot &>/dev/null
         echo "Build msvctricks ..."
         "$DEST/bin/$host/cl" /EHsc /O2 "$ORIG/msvctricks.cpp"
         if [ $? -eq 0 ]; then
