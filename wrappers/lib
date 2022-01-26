@@ -14,5 +14,5 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-. $(dirname $0)/msvcenv.sh
-$(dirname $0)/wine-msvc.sh $BINDIR/lib.exe "$@"
+. "$(dirname "$0")"/msvcenv.sh
+"$(dirname "$0")"/wine-msvc.sh "$BINDIR"/lib.exe "$@"
