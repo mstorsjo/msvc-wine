@@ -54,16 +54,7 @@ def getArgsParser():
     parser.add_argument("--only-download", const=True, action="store_const", help="Stop after downloading package files")
     parser.add_argument("--only-unpack", const=True, action="store_const", help="Unpack the selected packages and keep all files, in the layout they are unpacked, don't restructure and prune files other than what's needed for MSVC CLI tools")
     parser.add_argument("--keep-unpack", const=True, action="store_const", help="Keep the unpacked files that aren't otherwise selected as needed output")
-    parser.add_argument("--msvc-15.4", const=True, action="store_const", help="Install specifically the MSVC 15.4 toolchain")
-    parser.add_argument("--msvc-15.5", const=True, action="store_const", help="Install specifically the MSVC 15.5 toolchain")
-    parser.add_argument("--msvc-15.6", const=True, action="store_const", help="Install specifically the MSVC 15.6 toolchain")
-    parser.add_argument("--msvc-15.7", const=True, action="store_const", help="Install specifically the MSVC 15.7 toolchain")
-    parser.add_argument("--msvc-15.8", const=True, action="store_const", help="Install specifically the MSVC 15.8 toolchain")
-    parser.add_argument("--msvc-15.9", const=True, action="store_const", help="Install specifically the MSVC 15.9 toolchain")
-    parser.add_argument("--msvc-16.0", const=True, action="store_const", help="Install specifically the MSVC 16.0 toolchain")
-    parser.add_argument("--msvc-16.1", const=True, action="store_const", help="Install specifically the MSVC 16.1 toolchain")
-    parser.add_argument("--msvc-16.2", const=True, action="store_const", help="Install specifically the MSVC 16.2 toolchain")
-    parser.add_argument("--msvc-16.3", const=True, action="store_const", help="Install specifically the MSVC 16.3 toolchain")
+    parser.add_argument("--msvc-version", metavar="version", help="Install a specific MSVC toolchain version")
     return parser
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
@@ -91,27 +82,30 @@ def setPackageSelection(args, packages):
     # gives the latest/recommended version for the current manifest.
     defaultPackages = ["Microsoft.VisualStudio.Workload.VCTools", "Microsoft.VisualStudio.Component.VC.Tools.ARM", "Microsoft.VisualStudio.Component.VC.Tools.ARM64"]
 
-    if getattr(args, "msvc_16.0"):
+    if args.msvc_version == "16.0":
         setPackageSelectionMSVC16(args, packages, "16.0", "10.0.17763", "14.20", defaultPackages)
-    if getattr(args, "msvc_16.1"):
+    elif args.msvc_version == "16.1":
         setPackageSelectionMSVC16(args, packages, "16.1", "10.0.18362", "14.21", defaultPackages)
-    if getattr(args, "msvc_16.2"):
+    elif args.msvc_version == "16.2":
         setPackageSelectionMSVC16(args, packages, "16.2", "10.0.18362", "14.22", defaultPackages)
-    if getattr(args, "msvc_16.3"):
+    elif args.msvc_version == "16.3":
         setPackageSelectionMSVC16(args, packages, "16.3", "10.0.18362", "14.23", defaultPackages)
 
-    if getattr(args, "msvc_15.4"):
+    elif args.msvc_version == "15.4":
         setPackageSelectionMSVC15(args, packages, "15.4", "10.0.16299", "14.11", defaultPackages)
-    if getattr(args, "msvc_15.5"):
+    elif args.msvc_version == "15.5":
         setPackageSelectionMSVC15(args, packages, "15.5", "10.0.16299", "14.12", defaultPackages)
-    if getattr(args, "msvc_15.6"):
+    elif args.msvc_version == "15.6":
         setPackageSelectionMSVC15(args, packages, "15.6", "10.0.16299", "14.13", defaultPackages)
-    if getattr(args, "msvc_15.7"):
+    elif args.msvc_version == "15.7":
         setPackageSelectionMSVC15(args, packages, "15.7", "10.0.17134", "14.14", defaultPackages)
-    if getattr(args, "msvc_15.8"):
+    elif args.msvc_version == "15.8":
         setPackageSelectionMSVC15(args, packages, "15.8", "10.0.17134", "14.15", defaultPackages)
-    if getattr(args, "msvc_15.9"):
+    elif args.msvc_version == "15.9":
         setPackageSelectionMSVC15(args, packages, "15.9", "10.0.17763", "14.16", defaultPackages)
+    elif args.msvc_version != None:
+        print("Unsupported MSVC toolchain version " + args.msvc_version)
+        sys.exit(1)
 
     if len(args.package) == 0:
         args.package = defaultPackages
