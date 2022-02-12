@@ -83,26 +83,26 @@ def setPackageSelection(args, packages):
     defaultPackages = ["Microsoft.VisualStudio.Workload.VCTools", "Microsoft.VisualStudio.Component.VC.Tools.ARM", "Microsoft.VisualStudio.Component.VC.Tools.ARM64"]
 
     if args.msvc_version == "16.0":
-        setPackageSelectionMSVC16(args, packages, "16.0", "10.0.17763", "14.20", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.17763", "14.20", defaultPackages)
     elif args.msvc_version == "16.1":
-        setPackageSelectionMSVC16(args, packages, "16.1", "10.0.18362", "14.21", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.21", defaultPackages)
     elif args.msvc_version == "16.2":
-        setPackageSelectionMSVC16(args, packages, "16.2", "10.0.18362", "14.22", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.22", defaultPackages)
     elif args.msvc_version == "16.3":
-        setPackageSelectionMSVC16(args, packages, "16.3", "10.0.18362", "14.23", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.23", defaultPackages)
 
     elif args.msvc_version == "15.4":
-        setPackageSelectionMSVC15(args, packages, "15.4", "10.0.16299", "14.11", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.11", defaultPackages)
     elif args.msvc_version == "15.5":
-        setPackageSelectionMSVC15(args, packages, "15.5", "10.0.16299", "14.12", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.12", defaultPackages)
     elif args.msvc_version == "15.6":
-        setPackageSelectionMSVC15(args, packages, "15.6", "10.0.16299", "14.13", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.13", defaultPackages)
     elif args.msvc_version == "15.7":
-        setPackageSelectionMSVC15(args, packages, "15.7", "10.0.17134", "14.14", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.17134", "14.14", defaultPackages)
     elif args.msvc_version == "15.8":
-        setPackageSelectionMSVC15(args, packages, "15.8", "10.0.17134", "14.15", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.17134", "14.15", defaultPackages)
     elif args.msvc_version == "15.9":
-        setPackageSelectionMSVC15(args, packages, "15.9", "10.0.17763", "14.16", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.17763", "14.16", defaultPackages)
     elif args.msvc_version != None:
         print("Unsupported MSVC toolchain version " + args.msvc_version)
         sys.exit(1)
