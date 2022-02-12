@@ -55,6 +55,7 @@ def getArgsParser():
     parser.add_argument("--only-unpack", const=True, action="store_const", help="Unpack the selected packages and keep all files, in the layout they are unpacked, don't restructure and prune files other than what's needed for MSVC CLI tools")
     parser.add_argument("--keep-unpack", const=True, action="store_const", help="Keep the unpacked files that aren't otherwise selected as needed output")
     parser.add_argument("--msvc-version", metavar="version", help="Install a specific MSVC toolchain version")
+    parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
     return parser
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
@@ -130,6 +131,17 @@ def setPackageSelection(args, packages):
 
     if len(args.package) == 0:
         args.package = defaultPackages
+
+    if args.sdk_version != None:
+        for key in packages:
+            if key.startswith("win10sdk") or key.startswith("win11sdk"):
+                base = key[0:8]
+                sdkname = base + "_" + args.sdk_version
+                if key == sdkname:
+                    args.package.append(key)
+                else:
+                    args.ignore.append(key)
+        p = packages[key][0]
 
 def lowercaseIgnores(args):
     ignore = []
