@@ -514,7 +514,7 @@ def extractPackages(selected, cache, dest):
             print("Unpacking " + p["id"])
             for payload in p["payloads"]:
                 unpackVsix(os.path.join(dir, getPayloadName(payload)), dest, os.path.join(dest, getPackageKey(p) + "-listing.txt"))
-        elif p["id"].startswith("Win10SDK"):
+        elif p["id"].startswith("Win10SDK") or p["id"].startswith("Win11SDK"):
             print("Unpacking " + p["id"])
             unpackWin10SDK(dir, p["payloads"], dest)
         else:
