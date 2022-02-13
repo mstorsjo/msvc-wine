@@ -68,8 +68,6 @@ wineserver -p
 wine64 wineboot
 ```
 
-> **_Note:_** the installation path will be hardcoded in the installed `msvcenv.sh`, thus moving the folder to another location is not recommended.
-
 ### Setting up your project with CMake
 
 You need to set the path to prioritize our custom CMake, and also to see our MSVC installation.

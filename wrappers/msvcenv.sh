@@ -2,8 +2,13 @@
 
 SDK=kits\\10
 SDK_UNIX=kits/10
-BASE=z:\\opt\\msvc
-BASE_UNIX=/opt/msvc
+BASE_UNIX=$(cd "$(dirname "$0")"/.. && pwd)
+# Support having the wrappers in a directory one or two levels below the
+# installation directory.
+if [ ! -d "$BASE_UNIX/vc" ]; then
+    BASE_UNIX=$(cd "$BASE_UNIX"/.. && pwd)
+fi
+BASE=z:${BASE_UNIX//\//\\}
 MSVCVER=14.13.26128
 SDKVER=10.0.16299.0
 ARCH=x86
