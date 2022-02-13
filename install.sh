@@ -41,7 +41,7 @@ for arch in x86 x64 arm arm64; do
     cd ..
 done
 cd ../bin
-# vstip.exe is known to cause problems at some times; just remove it.
+# vctip.exe is known to cause problems at some times; just remove it.
 # See https://bugs.chromium.org/p/chromium/issues/detail?id=735226 and
 # https://github.com/mstorsjo/msvc-wine/issues/23 for references.
 for i in $(find . -iname vctip.exe); do
