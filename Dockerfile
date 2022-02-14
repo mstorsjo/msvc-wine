@@ -8,12 +8,12 @@ RUN apt-get update && \
 
 WORKDIR /opt/msvc
 
-COPY lowercase fixinclude install.sh vsdownload.py ./
+COPY install.py vsdownload.py ./
 COPY wrappers/* ./wrappers/
 
 RUN PYTHONUNBUFFERED=1 ./vsdownload.py --accept-license --dest /opt/msvc && \
-    ./install.sh /opt/msvc && \
-    rm lowercase fixinclude install.sh vsdownload.py && \
+    ./install.py /opt/msvc && \
+    rm install.py vsdownload.py && \
     rm -rf wrappers
 
 # Initialize the wine environment. Wait until the wineserver process has
