@@ -429,29 +429,29 @@ def _downloadPayload(payload, destname, fileid, allowHashMismatch):
             if os.access(destname, os.F_OK):
                 if "sha256" in payload:
                     if sha256File(destname).lower() != payload["sha256"].lower():
-                        print("Incorrect existing file %s, removing" % (fileid))
+                        six.print_("Incorrect existing file %s, removing" % (fileid), flush=True)
                         os.remove(destname)
                     else:
-                        print("Using existing file %s" % (fileid))
+                        six.print_("Using existing file %s" % (fileid), flush=True)
                         return 0
                 else:
                     return 0
             size = 0
             if "size" in payload:
                 size = payload["size"]
-            print("Downloading %s (%s)" % (fileid, formatSize(size)))
+            six.print_("Downloading %s (%s)" % (fileid, formatSize(size)), flush=True)
             six.moves.urllib.request.urlretrieve(payload["url"], destname)
             if "sha256" in payload:
                 if sha256File(destname).lower() != payload["sha256"].lower():
                     if allowHashMismatch:
-                        print("WARNING: Incorrect hash for downloaded file %s" % (fileid))
+                        six.print_("WARNING: Incorrect hash for downloaded file %s" % (fileid), flush=True)
                     else:
                         raise Exception("Incorrect hash for downloaded file %s, aborting" % fileid)
             return size
         except Exception as e:
             if attempt == attempts - 1:
                 raise
-            print("%s: %s" % (type(e).__name__, e))
+            six.print_("%s: %s" % (type(e).__name__, e), flush=True)
 
 def mergeTrees(src, dest):
     if not os.path.isdir(src):
