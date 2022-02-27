@@ -4,7 +4,7 @@ shift
 ARGS=()
 while [ $# -gt 0 ]; do
 	a=$1
-	case $a in
+	case "$a" in
 	/*)
 		if [ -d "$(dirname "$a")" ] && [ "$(dirname "$a")" != "/" ]; then
 			a=z:$a
