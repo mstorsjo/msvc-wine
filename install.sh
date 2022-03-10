@@ -34,6 +34,9 @@ mv vc/tools/MSVC vc/tools/msvc
 # linking MSVC built objects with lld-link.
 cd $(echo vc/tools/msvc/* | awk '{print $1}')/lib
 for arch in x86 x64 arm arm64; do
+    if [ ! -d "$arch" ]; then
+        continue
+    fi
     cd $arch
     for i in libcmt libcmtd msvcrt msvcrtd oldnames; do
         ln -s $i.lib $(echo $i | tr [a-z] [A-Z]).lib
@@ -66,6 +69,9 @@ $ORIG/lowercase kits/10/include/$SDKVER/shared
 $ORIG/fixinclude kits/10/include/$SDKVER/um
 $ORIG/fixinclude kits/10/include/$SDKVER/shared
 for arch in x86 x64 arm arm64; do
+    if [ ! -d "kits/10/lib/$SDKVER/um/$arch" ]; then
+        continue
+    fi
     $ORIG/lowercase kits/10/lib/$SDKVER/um/$arch
 done
 
@@ -73,6 +79,9 @@ SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
 MSVCVER=$(basename $(echo vc/tools/msvc/* | awk '{print $1}'))
 cat $ORIG/wrappers/msvcenv.sh | sed 's/MSVCVER=.*/MSVCVER='$MSVCVER/ | sed 's/SDKVER=.*/SDKVER='$SDKVER/ > msvcenv.sh
 for arch in x86 x64 arm arm64; do
+    if [ ! -d "vc/tools/msvc/$MSVCVER/bin/Hostx64/$arch" ]; then
+        continue
+    fi
     mkdir -p bin/$arch
     cp $ORIG/wrappers/* bin/$arch
     cat msvcenv.sh | sed 's/ARCH=.*/ARCH='$arch/ > bin/$arch/msvcenv.sh
