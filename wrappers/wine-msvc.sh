@@ -20,6 +20,13 @@ ARGS=()
 while [ $# -gt 0 ]; do
 	a=$1
 	case $a in
+	[-/][A-Za-z][A-Za-z]/*)
+		opt=${a:0:3}
+		path=${a:3}
+		if [ -d "$(dirname "$path")" ] && [ "$(dirname "$path")" != "/" ]; then
+			a=${opt}z:$path
+		fi
+		;;
 	/*)
 		if [ -d "$(dirname "$a")" ] && [ "$(dirname "$a")" != "/" ]; then
 			a=z:$a
