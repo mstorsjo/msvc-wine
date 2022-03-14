@@ -2,7 +2,7 @@
 
 SDK=kits\\10
 SDK_UNIX=kits/10
-BASE_UNIX=$(cd "$(dirname "$0")"/.. && pwd)
+BASE_UNIX=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 # Support having the wrappers in a directory one or two levels below the
 # installation directory.
 if [ ! -d "$BASE_UNIX/vc" ]; then
