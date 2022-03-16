@@ -78,6 +78,19 @@ mv Lib lib
 mv Include include
 cd ../..
 SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
+
+# Lowercase the SDK headers and libraries. As long as cl.exe is executed
+# within wine, this is mostly not necessary.
+#
+# (Older versions of cl.exe needed it, because those versions would produce
+# dependency paths with incorrect casing for some headers, breaking rebuilds
+# with tools that check dependencies.)
+#
+# But lowercasing the headers allows using them with case sensitive native
+# tools (such as clang-cl and lld-link). Leaving their original casing isn't
+# an option, because the headers aren't self consistent (headers are
+# included with a different mix of upper/lower case than what they have
+# on disk).
 $ORIG/lowercase kits/10/include/$SDKVER/um
 $ORIG/lowercase kits/10/include/$SDKVER/shared
 $ORIG/fixinclude kits/10/include/$SDKVER/um
