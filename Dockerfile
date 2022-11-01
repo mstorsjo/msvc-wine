@@ -1,8 +1,8 @@
 FROM ubuntu:20.04
 
 RUN apt-get update && \
-    apt-get install -y wine64-development python msitools python-simplejson \
-                       python-six ca-certificates && \
+    apt-get install -y wine64-development python3 msitools python3-simplejson \
+                       python3-six ca-certificates && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
 
