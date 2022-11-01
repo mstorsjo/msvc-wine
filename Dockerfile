@@ -16,6 +16,8 @@ RUN PYTHONUNBUFFERED=1 ./vsdownload.py --accept-license --dest /opt/msvc && \
     rm lowercase fixinclude install.sh vsdownload.py && \
     rm -rf wrappers
 
+COPY msvcenv-native.sh /opt/msvc
+
 # Initialize the wine environment. Wait until the wineserver process has
 # exited before closing the session, to avoid corrupting the wine prefix.
 RUN wine64 wineboot --init && \
