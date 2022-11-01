@@ -1,0 +1,33 @@
+ARG BASE=msvc-wine
+FROM $BASE
+
+RUN apt-get update && \
+    apt-get install -y curl && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Newer versions of Ubuntu also provide a new enough version of Clang/lld
+# to work with MSVC 2022 headers/libs, but clang-cl is only available with
+# a version suffix, like "clang-cl-14" anyway.
+RUN curl -LO https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz && \
+    tar -Jxf clang+llvm*.tar.xz && \
+    rm clang+llvm*.tar.xz && \
+    mv clang+llvm* /opt/clang
+
+ENV PATH=/opt/clang/bin:$PATH
+
+COPY hello.c ./
+
+RUN \
+    for arch in i686 x86_64 armv7 aarch64; do \
+        case $arch in \
+        i*86) msvcarch=x86 ;; \
+        x86_64) msvcarch=x64 ;; \
+        arm*) msvcarch=arm ;; \
+        aarch64) msvcarch=arm64 ;; \
+        esac; \
+        (BIN=/opt/msvc/bin/$msvcarch . /opt/msvc/msvcenv-native.sh && \
+            clang-cl --target=$arch-windows-msvc hello.c -fuse-ld=lld -Fehello-$arch.exe && \
+            clang --target=$arch-windows-msvc hello.c -fuse-ld=lld -o hello-$arch.exe \
+        ) || exit 1; \
+    done
