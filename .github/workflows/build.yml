@@ -1,0 +1,64 @@
+name: Builds
+on:
+  push:
+
+jobs:
+  test-msvc-wine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates
+          wine64 wineboot
+      - uses: actions/checkout@v3
+      - name: Download MSVC
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./install.sh $(pwd)/msvc
+      - name: Test using the installed tools
+        run: |
+          for arch in x86 x64 arm arm64; do
+              ./msvc/bin/$arch/cl hello.c -Fehello-$arch.exe
+          done
+       # Intentionally not storing any artifacts with the downloaded tools;
+       # the installed files aren't redistributable!
+
+  test-clang-lld:
+    # Ubuntu 22.04 comes with Clang/LLD 14; at least 13 is required for providing
+    # __guard_eh_cont_table and __guard_eh_cont_count which are required with
+    # MSVC 2019 16.8 or newer.
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update && sudo apt-get install python3 msitools python3-simplejson python3-six ca-certificates clang lld
+      - name: Set up clang-cl/lld-link symlinks
+        run: |
+          if [ ! -e /usr/bin/clang-cl ]; then
+              sudo ln -s /usr/bin/clang /usr/bin/clang-cl
+          fi
+          if [ ! -e /usr/bin/lld-link ]; then
+              sudo ln -s /usr/bin/lld /usr/bin/lld-link
+          fi
+      - uses: actions/checkout@v3
+      - name: Download MSVC
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./install.sh $(pwd)/msvc
+      - name: Test using the installed tools
+        run: |
+          for arch in i686 x86_64 armv7 aarch64; do
+              case $arch in
+              i*86) msvcarch=x86 ;;
+              x86_64) msvcarch=x64 ;;
+              arm*) msvcarch=arm ;;
+              aarch64) msvcarch=arm64 ;;
+              esac
+              (BIN=$(pwd)/msvc/bin/$msvcarch . ./msvcenv-native.sh
+                  clang-cl --target=$arch-windows-msvc hello.c -c -Fohello-$arch.obj
+                  lld-link hello-$arch.obj -out:hello-$arch.exe
+              )
+          done
+          ls -l *.exe
+       # Intentionally not storing any artifacts with the downloaded tools;
+       # the installed files aren't redistributable!
