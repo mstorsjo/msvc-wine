@@ -80,6 +80,53 @@ CC=cl CXX=cl cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_PROGRAMS=ON -DCMAKE_SYS
 make
 ```
 
+# Use with Clang/LLD in MSVC mode
+
+It's possible to cross compile from Linux using Clang and LLD operating entirely in MSVC mode, without running
+any tools through Wine. This still requires the nonredistributable MSVC and WinSDK headers and libraries - which
+can be fetched and unpacked conveniently with msvc-wine.
+
+To use clang/lld with MSVC/WinSDK headers provided by msvc-wine, first download and set up the MSVC installation
+as usual. You need less prerequisites as wine won't be needed:
+
+```bash
+apt-get update
+apt-get install -y python3 msitools python3-simplejson python3-six ca-certificates
+
+# Download and unpack MSVC
+./vsdownload.py --dest ~/my_msvc
+# Clean up headers, add scripts for setting up the environments
+./install.sh ~/my_msvc
+```
+
+To let Clang/LLD find the headers and libraries, source the `msvcenv-native.sh` script to set up the `INCLUDE`
+and `LIB` environment variables, with the `BIN` variable pointing at the relevant `bin` directory set up by
+`install.sh` above.
+
+```bash
+BIN=~/my_msvc/bin/x64 . ./msvcenv-native.sh
+```
+
+After this, you can invoke `clang-cl`, `clang --target=<arch>-windows-msvc` or `lld-link` without needing to
+point it specifically towards the MSVC installation, e.g. like this:
+
+```bash
+clang-cl -c hello.c
+lld-link hello.obj -out:hello.exe
+
+clang --target=x86_64-windows-msvc hello.c -fuse-ld=lld -o hello.exe
+```
+
+This should work with most distributions of Clang (both upstream release packages and Linux distribution provided
+packages). Note that not all distributions provide the clang-cl frontend (or it may exist as a version-suffixed
+tool like `clang-cl-14`). If `clang-cl` or `lld-link` are unavailable but plain `clang` and `lld` (or `ld.lld`)
+binaries are available, it's enough to just create new symlinks named `clang-cl` and `lld-link` pointing at
+the existing binaries. (The binaries normally contain all support for all targets, but switch mode/behaviour based
+on what name they are invoked as.)
+
+Do note that older versions of Clang/LLD might not work out of the box with the libraries from the very latest
+MSVC/WinSDK. Currently, at least Clang/LLD 13 seems to be required for MSVC 2019 16.8 or newer.
+
 # FAQ
 
 ## Does it run on Ubuntu 18.04 LTS?
