@@ -27,6 +27,10 @@ jobs:
     # Ubuntu 22.04 comes with Clang/LLD 14; at least 13 is required for providing
     # __guard_eh_cont_table and __guard_eh_cont_count which are required with
     # MSVC 2019 16.8 or newer.
+    # Since Clang 13, it's possible to point out the installed MSVC/WinSDK with
+    # the /winsysroot parameter. LLD also provides the same parameter since
+    # version 15. (For versions 13 and 14, this parameter can still be used
+    # for linking, as long as linking is done via Clang.)
     runs-on: ubuntu-22.04
     steps:
       - name: Install prerequisites
@@ -48,6 +52,7 @@ jobs:
       - name: Test using the installed tools
         run: |
           for arch in i686 x86_64 armv7 aarch64; do
+              clang-cl --target=$arch-windows-msvc hello.c -Fehello-$arch.exe -winsysroot $(pwd)/msvc -fuse-ld=lld
               case $arch in
               i*86) msvcarch=x86 ;;
               x86_64) msvcarch=x64 ;;
