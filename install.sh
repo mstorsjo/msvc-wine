@@ -37,9 +37,10 @@ DEST=$(pwd)
 if [ -n "$VC_ZIP" ]; then
     unzip $VC_ZIP
 fi
-mv VC vc
-mv vc/Tools vc/tools
-mv vc/tools/MSVC vc/tools/msvc
+ln -s kits "Windows Kits"
+ln -s VC vc
+ln -s Tools vc/tools
+ln -s MSVC vc/tools/msvc
 
 # Add symlinks like LIBCMT.lib -> libcmt.lib. These are properly lowercased
 # out of the box, but MSVC produces directives like /DEFAULTLIB:"LIBCMT"
@@ -74,8 +75,8 @@ else
     unzip $SDK_ZIP
     cd 10
 fi
-mv Lib lib
-mv Include include
+ln -s Lib lib
+ln -s Include include
 cd ../..
 SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
 
