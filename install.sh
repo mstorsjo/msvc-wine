@@ -135,10 +135,17 @@ for arch in x86 x64 arm arm64; do
     mkdir -p bin/$arch
     cp $ORIG/wrappers/* bin/$arch
     cat msvcenv.sh | sed 's/ARCH=.*/ARCH='$arch/ > bin/$arch/msvcenv.sh
+    if [ "$(uname -m)" = "aarch64" ]; then
+        cat bin/$arch/msvcenv.sh | sed s/x64/arm64/g > tmp
+        mv tmp bin/$arch/msvcenv.sh
+    fi
 done
 rm msvcenv.sh
 
 host=x64
+if [ "$(uname -m)" = "aarch64" ]; then
+    host=arm64
+fi
 if [ -d "$DEST/bin/$host" ] && [ -x "$(which wine64 2>/dev/null)" ]; then
     WINEDEBUG=-all wine64 wineboot &>/dev/null
     echo "Build msvctricks ..."
