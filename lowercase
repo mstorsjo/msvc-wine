@@ -147,6 +147,11 @@ for (my $i = 0; $i < @ARGV; $i++) {
     if ($i + 1 < @ARGV) { readMapping($ARGV[$i+1]); }
     $map_files = 1;
     $i += 1;
+  } elsif ($arg eq "-map_winsdk") {
+    $map_paths = 1;
+    # Keep the GL header directory in upper case, as that's the canonical
+    # cross platform spelling of that directory.
+    $mapping{lc("GL")} = "GL";
   } else {
     push @paths, $arg;
   }
