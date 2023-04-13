@@ -37,10 +37,10 @@ DEST=$(pwd)
 if [ -n "$VC_ZIP" ]; then
     unzip $VC_ZIP
 fi
-ln -s kits "Windows Kits"
-ln -s VC vc
-ln -s Tools vc/tools
-ln -s MSVC vc/tools/msvc
+ln -sfn kits "Windows Kits"
+ln -sfn VC vc
+ln -sfn Tools vc/tools
+ln -sfn MSVC vc/tools/msvc
 
 # Add symlinks like LIBCMT.lib -> libcmt.lib. These are properly lowercased
 # out of the box, but MSVC produces directives like /DEFAULTLIB:"LIBCMT"
@@ -54,7 +54,7 @@ for arch in x86 x64 arm arm64; do
     fi
     cd $arch
     for i in libcmt libcmtd msvcrt msvcrtd oldnames; do
-        ln -s $i.lib $(echo $i | tr [a-z] [A-Z]).lib
+        ln -sf $i.lib $(echo $i | tr [a-z] [A-Z]).lib
     done
     cd ..
 done
@@ -65,6 +65,18 @@ cd ../bin
 for i in $(find . -iname vctip.exe); do
     rm $i
 done
+if [ -d HostARM64 ]; then
+    # 17.2 - 17.3
+    mv HostARM64 Hostarm64
+fi
+if [ -d HostArm64 ]; then
+    # 17.4
+    mv HostArm64 Hostarm64
+fi
+if [ -d Hostarm64/ARM64 ]; then
+    # 17.2 - 17.3
+    mv Hostarm64/ARM64 Hostarm64/arm64
+fi
 cd "$DEST"
 
 if [ -d kits/10 ]; then
@@ -75,8 +87,8 @@ else
     unzip $SDK_ZIP
     cd 10
 fi
-ln -s Lib lib
-ln -s Include include
+ln -sfn Lib lib
+ln -sfn Include include
 cd ../..
 SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
 
