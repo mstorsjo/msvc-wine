@@ -104,7 +104,7 @@ for arch in x86 x64 arm arm64; do
     if [ ! -d "kits/10/lib/$SDKVER/um/$arch" ]; then
         continue
     fi
-    $ORIG/lowercase kits/10/lib/$SDKVER/um/$arch
+    $ORIG/lowercase -symlink kits/10/lib/$SDKVER/um/$arch
 done
 
 SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
