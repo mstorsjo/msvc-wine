@@ -18,6 +18,8 @@ use strict;
 
 sub dodir($);
 
+my %mapping;
+
 sub dodir($) {
   my $dir = shift;
 
@@ -44,6 +46,11 @@ sub dodir($) {
           my @values = split('//', $line);
           $values[0] =~ tr [A-Z\\] [a-z/];
 
+          foreach my $from (keys %mapping) {
+            my $to = $mapping{$from};
+            $values[0] =~ s,$from,$to,;
+          }
+
           $line = join('//', @values);
         }
         $line =~ s/[\r\n]//g;
@@ -58,5 +65,15 @@ sub dodir($) {
   }
 }
 
-die("Usage: fixinclude dir\n") if(@ARGV != 1);
-dodir($ARGV[0]);
+my @paths;
+for (my $i = 0; $i < @ARGV; $i++) {
+  my $arg = $ARGV[$i];
+  if ($arg eq "-map_winsdk") {
+    # Map references to e.g. GL/gl.h to keep that canonical spelling.
+    $mapping{lc("GL/")} = "GL/";
+  } else {
+    push @paths, $arg;
+  }
+}
+die("Usage: fixinclude dir\n") if(@paths != 1);
+dodir($paths[0]);
