@@ -41,13 +41,13 @@ sub dodir($) {
 
       while(my $line = <FHIN>) {
         if($line =~ m/^#include/) {
-	  my @values = split('//', $line);
-	  $values[0] =~ tr [A-Z\\] [a-z/];
+          my @values = split('//', $line);
+          $values[0] =~ tr [A-Z\\] [a-z/];
 
-	  $line = join('//', @values);
-	}
-	$line =~ s/[\r\n]//g;
-	print FHOUT "$line\n";
+          $line = join('//', @values);
+        }
+        $line =~ s/[\r\n]//g;
+        print FHOUT "$line\n";
       }
 
       close(FHIN);
