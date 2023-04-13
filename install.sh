@@ -92,8 +92,12 @@ SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
 # an option, because the headers aren't self consistent (headers are
 # included with a different mix of upper/lower case than what they have
 # on disk).
-$ORIG/lowercase -map_winsdk kits/10/include/$SDKVER/um
-$ORIG/lowercase -map_winsdk kits/10/include/$SDKVER/shared
+#
+# The original casing of file names is preserved though, by adding lowercase
+# symlinks instead of doing a plain rename, so files can be referred to with
+# either the out of the box filename or with the lowercase name.
+$ORIG/lowercase -map_winsdk -symlink kits/10/include/$SDKVER/um
+$ORIG/lowercase -map_winsdk -symlink kits/10/include/$SDKVER/shared
 $ORIG/fixinclude -map_winsdk kits/10/include/$SDKVER/um
 $ORIG/fixinclude -map_winsdk kits/10/include/$SDKVER/shared
 for arch in x86 x64 arm arm64; do
