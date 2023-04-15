@@ -15,9 +15,4 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 . $(dirname $0)/msvcenv.sh
-$(dirname $0)/wine-msvc.sh $SDKBINDIR/mt.exe "${@#/notify_update}"
-
-if [[ $? == 0 && "$@" =~ '/notify_update' ]]; then
-    # https://gitlab.kitware.com/cmake/cmake/-/blob/0991023c30ed5b83bcb1446b5bcc9c1eae028835/Source/cmcmd.cxx#L2388
-    exit 187
-fi
+$(dirname $0)/wine-msvc.sh $SDKBINDIR/mt.exe "$@"
