@@ -20,8 +20,8 @@ jobs:
           for arch in x86 x64 arm arm64; do
               ./msvc/bin/$arch/cl hello.c -Fehello-$arch.exe
           done
-       # Intentionally not storing any artifacts with the downloaded tools;
-       # the installed files aren't redistributable!
+      # Intentionally not storing any artifacts with the downloaded tools;
+      # the installed files aren't redistributable!
 
   test-clang-lld:
     # Ubuntu 22.04 comes with Clang/LLD 14; at least 13 is required for providing
@@ -65,5 +65,5 @@ jobs:
               )
           done
           ls -l *.exe
-       # Intentionally not storing any artifacts with the downloaded tools;
-       # the installed files aren't redistributable!
+      # Intentionally not storing any artifacts with the downloaded tools;
+      # the installed files aren't redistributable!
