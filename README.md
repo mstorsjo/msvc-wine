@@ -76,7 +76,7 @@ After that we just run CMake command with a few extra settings:
 ```bash
 export PATH=~/my_msvc/opt/cmake/bin:$PATH
 export PATH=~/my_msvc/opt/msvc/bin/x64:$PATH
-CC=cl CXX=cl cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_PROGRAMS=ON -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_CROSSCOMPILING=ON
+CC=cl CXX=cl cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows
 make
 ```
 
