@@ -16,7 +16,7 @@ RUN curl -LO https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0
 
 ENV PATH=/opt/clang/bin:$PATH
 
-COPY hello.c ./
+COPY test/hello.c ./
 
 RUN \
     for arch in i686 x86_64 armv7 aarch64; do \

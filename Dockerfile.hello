@@ -1,7 +1,7 @@
 ARG BASE=msvc-wine
 FROM $BASE
 
-COPY hello.c ./
+COPY test/hello.c ./
 
 RUN \
     wineserver -p && \

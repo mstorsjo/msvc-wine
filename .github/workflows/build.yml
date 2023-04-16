@@ -19,7 +19,7 @@ jobs:
       - name: Test using the installed tools
         run: |
           for arch in x86 x64 arm arm64; do
-              ./msvc/bin/$arch/cl hello.c -Fehello-$arch.exe
+              ./msvc/bin/$arch/cl test/hello.c -Fehello-$arch.exe
           done
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
@@ -39,7 +39,7 @@ jobs:
       - name: Test using the installed tools
         run: |
           for arch in x86 x64 arm arm64; do
-              ./msvc/bin/$arch/cl hello.c -Fehello-$arch.exe
+              ./msvc/bin/$arch/cl test/hello.c -Fehello-$arch.exe
           done
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
@@ -73,7 +73,7 @@ jobs:
       - name: Test using the installed tools
         run: |
           for arch in i686 x86_64 armv7 aarch64; do
-              clang-cl --target=$arch-windows-msvc hello.c -Fehello-$arch.exe -winsysroot $(pwd)/msvc -fuse-ld=lld
+              clang-cl --target=$arch-windows-msvc test/hello.c -Fehello-$arch.exe -winsysroot $(pwd)/msvc -fuse-ld=lld
               case $arch in
               i*86) msvcarch=x86 ;;
               x86_64) msvcarch=x64 ;;
@@ -81,7 +81,7 @@ jobs:
               aarch64) msvcarch=arm64 ;;
               esac
               (BIN=$(pwd)/msvc/bin/$msvcarch . ./msvcenv-native.sh
-                  clang-cl --target=$arch-windows-msvc hello.c -c -Fohello-$arch.obj
+                  clang-cl --target=$arch-windows-msvc test/hello.c -c -Fohello-$arch.obj
                   lld-link hello-$arch.obj -out:hello-$arch.exe
               )
           done
