@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates
+          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind
           wine64 wineboot
       - uses: actions/checkout@v3
       - name: Download MSVC
@@ -20,6 +20,17 @@ jobs:
         run: |
           for arch in x86 x64 arm arm64; do
               ./msvc/bin/$arch/cl test/hello.c -Fehello-$arch.exe
+          done
+      - name: Test building with CMake
+        run: |
+          for arch in x86 x64 arm arm64; do
+              mkdir test/build-$arch
+              cd test/build-$arch
+              (export PATH=$(pwd)/../../msvc/bin/$arch:$PATH
+                  CC=cl CXX=cl cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows
+                  ninja -v
+              )
+              cd ../..
           done
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
@@ -56,7 +67,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          sudo apt-get update && sudo apt-get install python3 msitools python3-simplejson python3-six ca-certificates clang lld
+          sudo apt-get update && sudo apt-get install python3 msitools python3-simplejson python3-six ca-certificates clang lld llvm cmake ninja-build
       - name: Set up clang-cl/lld-link symlinks
         run: |
           if [ ! -e /usr/bin/clang-cl ]; then
@@ -86,5 +97,22 @@ jobs:
               )
           done
           ls -l *.exe
+      - name: Test building with CMake
+        run: |
+          for arch in i686 x86_64 armv7 aarch64; do
+              mkdir test/build-$arch
+              cd test/build-$arch
+              case $arch in
+              i*86) msvcarch=x86 ;;
+              x86_64) msvcarch=x64 ;;
+              arm*) msvcarch=arm ;;
+              aarch64) msvcarch=arm64 ;;
+              esac
+              (BIN=$(pwd)/../../msvc/bin/$msvcarch . ../../msvcenv-native.sh
+                  CC="clang-cl --target=$arch-windows-msvc" CXX="clang-cl --target=$arch-windows-msvc" RC="llvm-rc" cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_MT=/usr/bin/llvm-mt
+                  ninja -v
+              )
+              cd ../..
+          done
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
