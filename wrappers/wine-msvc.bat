@@ -1,0 +1,3 @@
+@echo off
+
+%* %WINE_MSVC_ARGS% >%WINE_MSVC_STDOUT% 2>%WINE_MSVC_STDERR%
