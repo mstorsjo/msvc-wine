@@ -38,5 +38,12 @@ while [ $# -gt 0 ]; do
 	ARGS+=("$a")
 	shift
 done
-WINEDEBUG=-all wine64 "$EXE" "${ARGS[@]}" 2> >(sed 's/\r//' | sed 's/z:\([\\/]\)/\1/i' | sed '/^Note:/s,\\,/,g' >&2) | sed 's/\r//' | sed 's/z:\([\\/]\)/\1/i' | sed '/^Note:/s,\\,/,g'
-exit $PIPESTATUS
+
+unixify_path='s/\r// ; s/z:\([\\/]\)/\1/i ; /^Note:/s,\\,/,g'
+exec {fd1}> >(sed -e "$unixify_path")
+exec {fd2}> >(sed -e "$unixify_path" >&2)
+
+export WINE_MSVC_STDOUT=/proc/$$/fd/$fd1
+export WINE_MSVC_STDERR=/proc/$$/fd/$fd2
+export WINE_MSVC_ARGS=$(printf ' "%s"' "${ARGS[@]}")
+WINEDEBUG=-all wine64 'C:\Windows\System32\cmd.exe' /C $(dirname $0)/wine-msvc.bat "$EXE" &>/dev/null {fd1}>&- {fd2}>&-
