@@ -4,12 +4,32 @@ on:
   pull_request:
 
 jobs:
-  test-msvc-wine:
+  test-msvc-wine-linux:
     runs-on: ubuntu-latest
     steps:
       - name: Install prerequisites
         run: |
           sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates
+          wine64 wineboot
+      - uses: actions/checkout@v3
+      - name: Download MSVC
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./install.sh $(pwd)/msvc
+      - name: Test using the installed tools
+        run: |
+          for arch in x86 x64 arm arm64; do
+              ./msvc/bin/$arch/cl hello.c -Fehello-$arch.exe
+          done
+      # Intentionally not storing any artifacts with the downloaded tools;
+      # the installed files aren't redistributable!
+
+  test-msvc-wine-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Install prerequisites
+        run: |
+          brew install wine-stable msitools
           wine64 wineboot
       - uses: actions/checkout@v3
       - name: Download MSVC
