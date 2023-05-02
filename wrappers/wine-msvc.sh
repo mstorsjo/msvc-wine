@@ -39,11 +39,31 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-unixify_path='s/\r// ; s/z:\([\\/]\)/\1/i ; /^Note:/s,\\,/,g'
-exec {fd1}> >(sed -e "$unixify_path")
-exec {fd2}> >(sed -e "$unixify_path" >&2)
-
-export WINE_MSVC_STDOUT=/proc/$$/fd/$fd1
-export WINE_MSVC_STDERR=/proc/$$/fd/$fd2
 export WINE_MSVC_ARGS=$(printf ' "%s"' "${ARGS[@]}")
-WINEDEBUG=-all wine64 'C:\Windows\System32\cmd.exe' /C $(dirname $0)/wine-msvc.bat "$EXE" &>/dev/null {fd1}>&- {fd2}>&-
+
+unixify_path='s/\r// ; s/z:\([\\/]\)/\1/i ; /^Note:/s,\\,/,g'
+
+if [ -d /proc/$$/fd ]; then
+	exec {fd1}> >(sed -e "$unixify_path")
+	exec {fd2}> >(sed -e "$unixify_path" >&2)
+
+	export WINE_MSVC_STDOUT=/proc/$$/fd/$fd1
+	export WINE_MSVC_STDERR=/proc/$$/fd/$fd2
+	WINEDEBUG=-all wine64 'C:\Windows\System32\cmd.exe' /C $(dirname $0)/wine-msvc.bat "$EXE" &>/dev/null {fd1}>&- {fd2}>&-
+else
+	export WINE_MSVC_STDOUT=${TMPDIR:-/tmp}/wine-msvc.stdout.$$
+	export WINE_MSVC_STDERR=${TMPDIR:-/tmp}/wine-msvc.stderr.$$
+
+	cleanup() {
+		wait
+		rm -f $WINE_MSVC_STDOUT $WINE_MSVC_STDERR
+	}
+
+	trap cleanup EXIT
+
+	cleanup && mkfifo $WINE_MSVC_STDOUT $WINE_MSVC_STDERR || exit 1
+
+	sed -e "$unixify_path" <$WINE_MSVC_STDOUT &
+	sed -e "$unixify_path" <$WINE_MSVC_STDERR >&2 &
+	WINEDEBUG=-all wine64 'C:\Windows\System32\cmd.exe' /C $(dirname $0)/wine-msvc.bat "$EXE" &>/dev/null
+fi
