@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind nasm
+          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build nasm
           wine64 wineboot
       - uses: actions/checkout@v3
       - name: Download MSVC
@@ -27,7 +27,7 @@ jobs:
               mkdir test/build-$arch
               cd test/build-$arch
               (export PATH=$(pwd)/../../msvc/bin/$arch:$PATH
-                  CC=cl CXX=cl cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows
+                  CC=cl CXX=cl cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
                   ninja -v
               )
               cd ../..
