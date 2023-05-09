@@ -39,7 +39,14 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-export WINE_MSVC_ARGS=$(printf ' "%s"' "${ARGS[@]}")
+if [ ${#ARGS[@]} -gt 0 ]; then
+	# 1. Escape all double-quotes.
+	# 2. Enclose each argument with double quotes.
+	# 3. Join all arguments with spaces.
+	export WINE_MSVC_ARGS=$(printf ' "%s"' "${ARGS[@]//\"/\\\"}")
+else
+	export WINE_MSVC_ARGS=
+fi
 
 unixify_path='s/\r// ; s/z:\([\\/]\)/\1/i ; /^Note:/s,\\,/,g'
 
