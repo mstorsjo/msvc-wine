@@ -1,8 +1,17 @@
 Cross compilation with MSVC on Linux
 ====================================
 
-This is a reproducible Dockerfile for cross compiling with MSVC on Linux,
-usable as base image for CI style setups.
+This is a set of tools for using MSVC on Linux (and other Unix OSes).
+
+It consists of two main parts:
+
+- A Python script that downloads and unpacks MSVC and the Windows SDK
+
+- Wrapping and tweaking of the unpacked MSVC/WinSDK to make MSVC work
+  transparently from Unix based build tools with Wine
+
+The first part also works without the second, as a source of MSVC
+and WinSDK for use with e.g. clang-cl.
 
 This downloads and unpacks the necessary Visual Studio components using
 the same installer manifests as Visual Studio 2017/2019's installer
@@ -10,25 +19,25 @@ uses. Downloading and installing it requires accepting the license,
 available at https://go.microsoft.com/fwlink/?LinkId=2086102 for the
 currently latest version.
 
-As Visual Studio isn't redistributable, the resulting docker image isn't
+As Visual Studio isn't redistributable, the installed toolchain isn't
 either.
 
-Build the docker image like this:
-
-    docker build .
-
-After building the docker image, there are 4 directories with tools,
-in `/opt/msvc/bin/<arch>`, for all architectures out of `x86`,
-`x64`, `arm` and `arm64`, that should be added to the PATH before building
-with it.
-
-The installer scripts also work fine without docker; just run the following two commands:
+To install, just run the following two commands:
 
     ./vsdownload.py --dest <dir>
     ./install.sh <dir>
 
 The unpacking requires recent versions of msitools (0.98) and libgcab
 (1.2); sufficiently new versions are available in e.g. Ubuntu 19.04.
+
+After installing the toolchain this way, there are 4 directories with tools,
+in `<dest>/bin/<arch>`, for all architectures out of `x86`,
+`x64`, `arm` and `arm64`, that should be added to the PATH before building
+with it.
+
+There's also a reproducible dockerfile, that creates a docker image with
+the MSVC tools available in `/opt/msvc`. (This also serves as a testable
+example of an environment where the install is known to work.)
 
 
 # Build instructions for local installation
