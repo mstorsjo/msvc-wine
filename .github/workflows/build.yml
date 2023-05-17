@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind
+          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind nasm
           wine64 wineboot
       - uses: actions/checkout@v3
       - name: Download MSVC
@@ -32,6 +32,17 @@ jobs:
               )
               cd ../..
           done
+      - name: Test building FFmpeg
+        run: |
+          git clone https://github.com/ffmpeg/ffmpeg.git
+          cd ffmpeg
+          git checkout n6.0
+          cd ..
+          mkdir ffmpeg-build
+          cd ffmpeg-build
+          export PATH=$(pwd)/../msvc/bin/x64:$PATH
+          ../ffmpeg/configure --arch=x86_64 --target-os=win32 --toolchain=msvc --enable-cross-compile --disable-debug --disable-doc
+          make -j$(nproc)
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
 
