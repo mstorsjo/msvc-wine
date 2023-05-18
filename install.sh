@@ -137,3 +137,17 @@ for arch in x86 x64 arm arm64; do
     cat msvcenv.sh | sed 's/ARCH=.*/ARCH='$arch/ > bin/$arch/msvcenv.sh
 done
 rm msvcenv.sh
+
+host=x64
+if [ -d "$DEST/bin/$host" ] && [ -x "$(which wine64 2>/dev/null)" ]; then
+    WINEDEBUG=-all wine64 wineboot &>/dev/null
+    echo "Build msvctricks ..."
+    "$DEST/bin/$host/cl" /EHsc /O2 "$ORIG/msvctricks.cpp"
+    if [ $? -eq 0 ]; then
+        mv msvctricks.exe bin/
+        rm msvctricks.obj
+        echo "Build msvctricks done."
+    else
+        echo "Build msvctricks failed."
+    fi
+fi
