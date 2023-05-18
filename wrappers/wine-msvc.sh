@@ -47,6 +47,26 @@ if [ ${#ARGS[@]} -gt 0 ]; then
 else
 	export WINE_MSVC_ARGS=
 fi
+# 4. Split the argument string into multiple variables with smaller length.
+# https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw
+# The maximum length of lpCommandLine for CreateProcess is 32,767 characters.
+# https://learn.microsoft.com/en-us/troubleshoot/windows-client/shell-experience/command-line-string-limitation
+n=8191 # The maximum length of the string that you can use at the command prompt is 8191 characters.
+export WINE_MSVC_ARGS0=${WINE_MSVC_ARGS:0*$n:$n}
+export WINE_MSVC_ARGS1=${WINE_MSVC_ARGS:1*$n:$n}
+export WINE_MSVC_ARGS2=${WINE_MSVC_ARGS:2*$n:$n}
+export WINE_MSVC_ARGS3=${WINE_MSVC_ARGS:3*$n:$n}
+export WINE_MSVC_ARGS4=${WINE_MSVC_ARGS:4*$n:$n}
+export WINE_MSVC_ARGS5=${WINE_MSVC_ARGS:5*$n:$n}
+export WINE_MSVC_ARGS6=${WINE_MSVC_ARGS:6*$n:$n}
+export WINE_MSVC_ARGS7=${WINE_MSVC_ARGS:7*$n:$n}
+export WINE_MSVC_ARGS8=${WINE_MSVC_ARGS:8*$n:$n}
+export WINE_MSVC_ARGS9=${WINE_MSVC_ARGS:9*$n:$n}
+
+if [ ${#WINE_MSVC_ARGS9} -ge $n ]; then
+	echo "Command line arguments are too long." >&2
+	exit 1
+fi
 
 unixify_path='s/\r// ; s/z:\([\\/]\)/\1/i ; /^Note:/s,\\,/,g'
 
