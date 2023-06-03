@@ -22,6 +22,8 @@ EOF
 
 cat >test.c <<EOF
 #include "test.h"
+ 	 #line 5 __FILE__
+const char* file = __FILE__;
 EOF
 
 
@@ -30,6 +32,20 @@ EXEC "" ${BIN}cl ${TESTS}hello.c
 
 EXEC cl-showIncludes ${BIN}cl /nologo /showIncludes /c test.c
 DIFF cl-showIncludes.out - <<EOF
+test.c
+Note: including file: ${CWD}test.h
+EOF
+
+
+EXEC cl-showIncludes-E-FC ${BIN}cl /nologo /showIncludes /E /FC test.c
+DIFF cl-showIncludes-E-FC.out - <<EOF
+#line 1 "${CWD}test.c"
+#line 1 "${CWD}test.h"
+#line 2 "${CWD}test.c"
+ 	 #line 5 "${CWD}test.c"
+const char* file = "Z:${CWD//\//\\\\}test.c";
+EOF
+DIFF cl-showIncludes-E-FC.err - <<EOF
 test.c
 Note: including file: ${CWD}test.h
 EOF

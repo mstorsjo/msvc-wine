@@ -18,8 +18,10 @@
 
 # /showIncludes
 unixify_path='/^Note: including file: /{ s/z:([\\/])/\1/i; s,\\,/,g; }'
+# /E
+unixify_line='/^[[:blank:]]*#[[:blank:]]*line[[:blank:]]/{ s/z:([\\/])/\1/i; s,\\\\,/,g; }'
 
-export WINE_MSVC_STDOUT_SED="$unixify_path"
+export WINE_MSVC_STDOUT_SED="$unixify_path;$unixify_line"
 export WINE_MSVC_STDERR_SED="$unixify_path"
 
 $(dirname $0)/wine-msvc.sh $BINDIR/cl.exe "$@"
