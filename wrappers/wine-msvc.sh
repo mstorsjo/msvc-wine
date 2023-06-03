@@ -46,10 +46,11 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-unixify_path='s/\r// ; s/z:\([\\/]\)/\1/i ; /^Note:/s,\\,/,g'
+WINE_MSVC_STDOUT_SED='s/\r//;'"$WINE_MSVC_STDOUT_SED"
+WINE_MSVC_STDERR_SED='s/\r//;'"$WINE_MSVC_STDERR_SED"
 
 if ! $HAS_MSVCTRICKS; then
-	WINEDEBUG=-all wine64 "$EXE" "${ARGS[@]}" 2> >(sed -e "$unixify_path" >&2) | sed -e "$unixify_path"
+	WINEDEBUG=-all wine64 "$EXE" "${ARGS[@]}" 2> >(sed -E "$WINE_MSVC_STDERR_SED" >&2) | sed -E "$WINE_MSVC_STDOUT_SED"
 	exit $PIPESTATUS
 else
 	export WINE_MSVC_STDOUT=${TMPDIR:-/tmp}/wine-msvc.stdout.$$
@@ -64,7 +65,7 @@ else
 
 	cleanup && mkfifo $WINE_MSVC_STDOUT $WINE_MSVC_STDERR || exit 1
 
-	sed -e "$unixify_path" <$WINE_MSVC_STDOUT &
-	sed -e "$unixify_path" <$WINE_MSVC_STDERR >&2 &
+	sed -E "$WINE_MSVC_STDOUT_SED" <$WINE_MSVC_STDOUT &
+	sed -E "$WINE_MSVC_STDERR_SED" <$WINE_MSVC_STDERR >&2 &
 	WINEDEBUG=-all wine64 "$EXE" "${ARGS[@]}" &>/dev/null
 fi
