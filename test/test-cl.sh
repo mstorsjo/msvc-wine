@@ -51,4 +51,14 @@ Note: including file: ${CWD}test.h
 EOF
 
 
+EXEC cl-P-Fi ${BIN}cl /nologo /P /Ficl-P-Fi.i ./test.c
+DIFF cl-P-Fi.i - <<EOF
+#line 1 "./test.c"
+#line 1 "${CWD}test.h"
+#line 2 "./test.c"
+ 	 #line 5 "./test.c"
+const char* file = "./test.c";
+EOF
+
+
 EXIT

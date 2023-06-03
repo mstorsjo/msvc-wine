@@ -25,3 +25,26 @@ export WINE_MSVC_STDOUT_SED="$unixify_path;$unixify_line"
 export WINE_MSVC_STDERR_SED="$unixify_path"
 
 $(dirname $0)/wine-msvc.sh $BINDIR/cl.exe "$@"
+
+ec=$?
+[ $ec -ne 0 ] && exit $ec
+
+# Postprocess
+for a in "$@"; do
+    case $a in
+        [-/]P) arg_P=$a ;;
+        [-/]Fi*) arg_Fi=${a:3} ;;
+    esac
+done
+
+# Unixify paths for /P
+if [ -n "$arg_P" ] && [ -f "$arg_Fi" ]; then
+    if sed --help 2>&1 | grep '\-i extension' >/dev/null; then
+        inplace=(-i '') # BSD sed
+    else
+        inplace=(-i)    # GNU sed
+    fi
+    sed "${inplace[@]}" -E 's/\r//;'"$unixify_line" "$arg_Fi"
+fi
+
+exit $ec
