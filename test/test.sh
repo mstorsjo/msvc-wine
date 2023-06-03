@@ -91,6 +91,7 @@ for arch in x86 x64 arm arm64; do
     EXEC "" BIN=$BIN ./test-cl.sh
     EXEC "" BIN=$BIN ./test-mt.sh
     EXEC "" BIN=$BIN ./test-cmake.sh
+    EXEC "" BIN=$BIN ./test-dumpbin.sh
 done
 
 EXIT
