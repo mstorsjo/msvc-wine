@@ -133,7 +133,7 @@ for arch in x86 x64 arm arm64; do
         continue
     fi
     mkdir -p bin/$arch
-    cp $ORIG/wrappers/* bin/$arch
+    cp -a $ORIG/wrappers/* bin/$arch
     cat msvcenv.sh | sed 's/ARCH=.*/ARCH='$arch/ > bin/$arch/msvcenv.sh
     if [ "$(uname -m)" = "aarch64" ]; then
         cat bin/$arch/msvcenv.sh | sed s/x64/arm64/g > tmp
