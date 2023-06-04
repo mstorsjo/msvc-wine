@@ -64,7 +64,16 @@ for arch in x86 x64 arm arm64; do
     done
     cd ..
 done
-cd ../bin
+cd ..
+# Fix casing issues in the MSVC headers. These headers mostly have consistent
+# lowercase naming among themselves, but they do reference some WinSDK headers
+# with mixed case names (in a spelling that isn't present in the WinSDK).
+# Thus process them to reference the other headers with lowercase names.
+# Also lowercase these files, as a few of them do have non-lowercase names,
+# and the call to fixinclude lowercases those references.
+$ORIG/lowercase -symlink include
+$ORIG/fixinclude include
+cd bin
 # vctip.exe is known to cause problems at some times; just remove it.
 # See https://bugs.chromium.org/p/chromium/issues/detail?id=735226 and
 # https://github.com/mstorsjo/msvc-wine/issues/23 for references.
