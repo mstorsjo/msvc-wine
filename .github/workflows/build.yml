@@ -29,9 +29,22 @@ jobs:
               (export PATH=$(pwd)/../../msvc/bin/$arch:$PATH
                   CC=cl CXX=cl cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows
                   ninja -v
+                  # Rerun ninja to make sure that dependencies aren't broken.
+                  ninja
               )
               cd ../..
           done
+      - name: Check dependency output
+        run: |
+          touch test/header.h
+          echo '#include "header.h"' > test/main.c
+          $(pwd)/msvc/bin/x64/cl -nologo -showIncludes -c test/main.c > test/deps
+          path="$(cat test/deps | grep ^Note: | sed 's/^Note: including file: //')"
+          ref="$(pwd)/test/header.h"
+          if [ "$path" != "$ref" ]; then
+              echo Unexpected path \"$path\", expected \"$ref\"
+              exit 1
+          fi
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
 
@@ -52,6 +65,17 @@ jobs:
           for arch in x86 x64 arm arm64; do
               ./msvc/bin/$arch/cl test/hello.c -Fehello-$arch.exe
           done
+      - name: Check dependency output
+        run: |
+          touch test/header.h
+          echo '#include "header.h"' > test/main.c
+          $(pwd)/msvc/bin/x64/cl -nologo -showIncludes -c test/main.c > test/deps
+          path="$(cat test/deps | grep ^Note: | sed 's/^Note: including file: //')"
+          ref="$(pwd)/test/header.h"
+          if [ "$path" != "$ref" ]; then
+              echo Unexpected path \"$path\", expected \"$ref\"
+              exit 1
+          fi
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
 
