@@ -42,7 +42,9 @@ sub dodir($) {
       open FHOUT,">$dir/$i.out" || die("Can't write to $dir/$i.out");
 
       while(my $line = <FHIN>) {
-        if($line =~ m/^#include/) {
+        # Make sure to match '#include <foo>' or '#include "bar"', but not
+        # '#include IDENTIFIER'.
+        if($line =~ m/^#\s*include\s+["<][\w\.\/\\]+[">]/) {
           my @values = split('//', $line);
           $values[0] =~ tr [A-Z\\] [a-z/];
 
