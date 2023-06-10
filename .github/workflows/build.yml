@@ -18,20 +18,7 @@ jobs:
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
-          for arch in x86 x64 arm arm64; do
-              ./msvc/bin/$arch/cl test/hello.c -Fehello-$arch.exe
-          done
-      - name: Test building with CMake
-        run: |
-          for arch in x86 x64 arm arm64; do
-              mkdir test/build-$arch
-              cd test/build-$arch
-              (export PATH=$(pwd)/../../msvc/bin/$arch:$PATH
-                  CC=cl CXX=cl cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows
-                  ninja -v
-              )
-              cd ../..
-          done
+          test/test.sh $(pwd)/msvc
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
 
@@ -40,7 +27,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          brew install wine-stable msitools
+          brew install wine-stable msitools cmake ninja
           wine64 wineboot
       - uses: actions/checkout@v3
       - name: Download MSVC
@@ -49,9 +36,7 @@ jobs:
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
-          for arch in x86 x64 arm arm64; do
-              ./msvc/bin/$arch/cl test/hello.c -Fehello-$arch.exe
-          done
+          test/test.sh $(pwd)/msvc
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
 
