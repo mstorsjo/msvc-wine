@@ -134,9 +134,14 @@ for arch in x86 x64 arm arm64; do
     $ORIG/lowercase -symlink kits/10/lib/$SDKVER/um/$arch
 done
 
+host=x64
+if [ "$(uname -m)" = "aarch64" ]; then
+    host=arm64
+fi
+
 SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
 MSVCVER=$(basename $(echo vc/tools/msvc/* | awk '{print $1}'))
-cat $ORIG/wrappers/msvcenv.sh | sed 's/MSVCVER=.*/MSVCVER='$MSVCVER/ | sed 's/SDKVER=.*/SDKVER='$SDKVER/ > msvcenv.sh
+cat $ORIG/wrappers/msvcenv.sh | sed 's/MSVCVER=.*/MSVCVER='$MSVCVER/ | sed 's/SDKVER=.*/SDKVER='$SDKVER/ | sed s/x64/$host/ > msvcenv.sh
 for arch in x86 x64 arm arm64; do
     if [ ! -d "vc/tools/msvc/$MSVCVER/bin/Hostx64/$arch" ]; then
         continue
@@ -144,17 +149,9 @@ for arch in x86 x64 arm arm64; do
     mkdir -p bin/$arch
     cp -a $ORIG/wrappers/* bin/$arch
     cat msvcenv.sh | sed 's/ARCH=.*/ARCH='$arch/ > bin/$arch/msvcenv.sh
-    if [ "$(uname -m)" = "aarch64" ]; then
-        cat bin/$arch/msvcenv.sh | sed s/x64/arm64/g > tmp
-        mv tmp bin/$arch/msvcenv.sh
-    fi
 done
 rm msvcenv.sh
 
-host=x64
-if [ "$(uname -m)" = "aarch64" ]; then
-    host=arm64
-fi
 if [ -d "$DEST/bin/$host" ] && [ -x "$(which wine64 2>/dev/null)" ]; then
     WINEDEBUG=-all wine64 wineboot &>/dev/null
     echo "Build msvctricks ..."
