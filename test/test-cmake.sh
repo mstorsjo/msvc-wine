@@ -17,7 +17,12 @@
 . "${0%/*}/test.sh"
 
 
+MSVCDIR=$(. "${BIN}msvcenv.sh" && echo $MSVCDIR)
+MSVCDIR=${MSVCDIR//\\//}
+MSVCDIR=${MSVCDIR#z:}
+
 CMAKE_ARGS=(
+    -DMSVCDIR="$MSVCDIR"
     -DCMAKE_BUILD_TYPE=RelWithDebInfo
     -DCMAKE_SYSTEM_NAME=Windows
 )
