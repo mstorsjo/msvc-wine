@@ -44,6 +44,7 @@ EXEC() {
             echo EXEC: "$cmd"
             cat $stdout
             cat $stderr 1>&2
+            rm -f "$stdout" "$stderr"
         fi
     fi
     return $ec
