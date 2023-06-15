@@ -8,7 +8,7 @@ RUN apt-get update && \
 
 WORKDIR /opt/msvc
 
-COPY lowercase fixinclude install.sh vsdownload.py ./
+COPY lowercase fixinclude install.sh vsdownload.py msvctricks.cpp ./
 COPY wrappers/* ./wrappers/
 
 RUN PYTHONUNBUFFERED=1 ./vsdownload.py --accept-license --dest /opt/msvc && \
