@@ -101,3 +101,19 @@ jobs:
           done
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
+
+  test-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build the main msvc-wine docker image
+        run: |
+          docker build -t msvc-wine -f Dockerfile .
+      - name: Test using the installed tools
+        run: |
+          docker build -f Dockerfile.hello .
+      - name: Test using the installation with Clang
+        run: |
+          docker build -f Dockerfile.clang .
+      # Intentionally not pushing the built docker images;
+      # the installed files aren't redistributable!
