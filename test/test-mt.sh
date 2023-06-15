@@ -27,7 +27,7 @@ esac
 # https://gitlab.kitware.com/cmake/cmake/-/blob/v3.26.0/Source/cmcmd.cxx#L2405
 # https://github.com/mstorsjo/msvc-wine/pull/63
 mtRetIsUpdate() {
-    eval "$@"
+    eval $(printf '%q ' "$@")
     local mtRet=$?
     if [ $mtRet -eq 1090650113 ] || [ $mtRet -eq 187 ]; then
         return 0

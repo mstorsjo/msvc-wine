@@ -27,11 +27,13 @@ EXEC() {
         local stdout="$output.out"
         local stderr="$output.err"
         shift
-        eval "$@" >$stdout 2>$stderr
+        local cmd=$(printf '%q ' "$@")
+        eval "$cmd" >$stdout 2>$stderr
     else
         shift
-        echo EXEC: "$@"
-        eval "$@"
+        local cmd=$(printf '%q ' "$@")
+        echo EXEC: "$cmd"
+        eval "$cmd"
     fi
 
     local ec=$?
@@ -39,7 +41,7 @@ EXEC() {
     if [ $ec -ne 0 ]; then
         num_of_fails=$(($num_of_fails+1))
         if [ -n "$output" ]; then
-            echo EXEC: "$@"
+            echo EXEC: "$cmd"
             cat $stdout
             cat $stderr 1>&2
         fi
