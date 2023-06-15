@@ -44,6 +44,8 @@ EXEC "" ninja -v
 
 # Rerun ninja to make sure that dependencies aren't broken.
 EXEC ninja-rerun ninja -d explain -v
+DIFF ninja-rerun.err - <<EOF
+EOF
 DIFF ninja-rerun.out - <<EOF
 ninja: no work to do.
 EOF
