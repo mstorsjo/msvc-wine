@@ -37,4 +37,10 @@ EXEC "" clang-cl --target=$TARGET_ARCH-windows-msvc "${TESTS}hello.c" -Fehello.e
 EXEC "" clang-cl --target=$TARGET_TRIPLE "${TESTS}hello.c" -c -Fohello.obj
 EXEC "" lld-link hello.obj -out:hello.exe
 
+# Test if paths with potentially problematic casing can be included. As this
+# is tricky to compile (the old sal.h codepaths that are enabled aren't
+# supported by Clang, and MSVC STL headers require a very recent Clang), just
+# test preprocessing it to make sure that all paths can be found.
+EXEC "" clang-cl --target=$TARGET_TRIPLE "${TESTS}headers.cpp" -P -Fiheaders-preproc.cpp
+
 EXIT
