@@ -19,15 +19,9 @@ ENV PATH=/opt/clang/bin:$PATH
 COPY test/hello.c ./
 
 RUN \
-    for arch in i686 x86_64 armv7 aarch64; do \
-        case $arch in \
-        i*86) msvcarch=x86 ;; \
-        x86_64) msvcarch=x64 ;; \
-        arm*) msvcarch=arm ;; \
-        aarch64) msvcarch=arm64 ;; \
-        esac; \
-        (BIN=/opt/msvc/bin/$msvcarch . /opt/msvc/msvcenv-native.sh && \
-            clang-cl --target=$arch-windows-msvc hello.c -fuse-ld=lld -Fehello-$arch.exe && \
-            clang --target=$arch-windows-msvc hello.c -fuse-ld=lld -o hello-$arch.exe \
+    for arch in x86 x64 arm arm64; do \
+        (BIN=/opt/msvc/bin/$arch . /opt/msvc/msvcenv-native.sh && \
+            clang-cl --target=$TARGET_TRIPLE hello.c -fuse-ld=lld -Fehello-$arch.exe && \
+            clang --target=$TARGET_TRIPLE hello.c -fuse-ld=lld -o hello-$arch.exe \
         ) || exit 1; \
     done

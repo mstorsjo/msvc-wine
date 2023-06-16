@@ -77,24 +77,18 @@ jobs:
               aarch64) msvcarch=arm64 ;;
               esac
               (BIN=$(pwd)/msvc/bin/$msvcarch . ./msvcenv-native.sh
-                  clang-cl --target=$arch-windows-msvc test/hello.c -c -Fohello-$arch.obj
+                  clang-cl --target=$TARGET_TRIPLE test/hello.c -c -Fohello-$arch.obj
                   lld-link hello-$arch.obj -out:hello-$arch.exe
               )
           done
           ls -l *.exe
       - name: Test building with CMake
         run: |
-          for arch in i686 x86_64 armv7 aarch64; do
+          for arch in x86 x64 arm arm64; do
               mkdir test/build-$arch
               cd test/build-$arch
-              case $arch in
-              i*86) msvcarch=x86 ;;
-              x86_64) msvcarch=x64 ;;
-              arm*) msvcarch=arm ;;
-              aarch64) msvcarch=arm64 ;;
-              esac
-              (BIN=$(pwd)/../../msvc/bin/$msvcarch . ../../msvcenv-native.sh
-                  CC="clang-cl --target=$arch-windows-msvc" CXX="clang-cl --target=$arch-windows-msvc" RC="llvm-rc" cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_MT=/usr/bin/llvm-mt
+              (BIN=$(pwd)/../../msvc/bin/$arch . ../../msvcenv-native.sh
+                  CC="clang-cl --target=$TARGET_TRIPLE" CXX="clang-cl --target=$TARGET_TRIPLE" RC="llvm-rc" cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_MT=/usr/bin/llvm-mt
                   ninja -v
               )
               cd ../..
