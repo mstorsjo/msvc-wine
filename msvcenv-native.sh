@@ -35,5 +35,13 @@ else
     else
         export INCLUDE="$(bash -c ". $ENV && /bin/echo \"\$INCLUDE\"" | sed s/z://g | sed 's/\\/\//g')"
         export LIB="$(bash -c ". $ENV && /bin/echo \"\$LIB\"" | sed s/z://g | sed 's/\\/\//g')"
+        MSVCARCH="$(bash -c ". $ENV && /bin/echo \"\$ARCH\"")"
+        case $MSVCARCH in
+        x86) TARGET_ARCH=i686 ;;
+        x64) TARGET_ARCH=x86_64 ;;
+        arm) TARGET_ARCH=armv7 ;;
+        arm64) TARGET_ARCH=aarch64 ;;
+        esac
+        TARGET_TRIPLE=$TARGET_ARCH-windows-msvc
     fi
 fi
