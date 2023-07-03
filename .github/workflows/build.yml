@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind
+          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind meson
           wine64 wineboot
       - uses: actions/checkout@v3
       - name: Download MSVC
@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          brew install wine-stable msitools cmake ninja
+          brew install wine-stable msitools cmake ninja meson
           wine64 wineboot
       - uses: actions/checkout@v3
       - name: Download MSVC
