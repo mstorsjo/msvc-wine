@@ -27,6 +27,19 @@ ARGS=()
 while [ $# -gt 0 ]; do
 	a=$1
 	case $a in
+	[-/][A-Za-z]/*)
+		opt=${a:0:2}
+		path=${a:2}
+		# Rewrite options like -I/absolute/path into -Iz:/absolute/path.
+		# This is needed to avoid what seems like a cl.exe/Wine bug combination
+		# in some very rare cases, see https://bugs.winehq.org/show_bug.cgi?id=55200
+		# for details. In those rare cases, cl.exe fails to find includes in
+		# some directories specified with -I/absolute/path but does find them if
+		# they have been specified as -Iz:/absolute/path.
+		if [ -d "$(dirname "$path")" ] && [ "$(dirname "$path")" != "/" ]; then
+			a=${opt}z:$path
+		fi
+		;;
 	[-/][A-Za-z][A-Za-z]/*)
 		opt=${a:0:3}
 		path=${a:3}
