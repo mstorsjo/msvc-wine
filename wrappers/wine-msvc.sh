@@ -30,11 +30,17 @@ while [ $# -gt 0 ]; do
 	[-/][A-Za-z][A-Za-z]/*)
 		opt=${a:0:3}
 		path=${a:3}
+		# Rewrite options like -Fo/absolute/path into -Foz:/absolute/path.
+		# This doesn't seem to be strictly needed for any known case at the moment, but
+		# might have been needed with some version of MSVC or Wine earlier.
 		if [ -d "$(dirname "$path")" ] && [ "$(dirname "$path")" != "/" ]; then
 			a=${opt}z:$path
 		fi
 		;;
 	/*)
+		# Rewrite options like /absolute/path into z:/absolute/path.
+		# This is essential for disambiguating e.g. /home/user/file from the
+		# tool option /h with the value ome/user/file.
 		if [ -d "$(dirname "$a")" ] && [ "$(dirname "$a")" != "/" ]; then
 			a=z:$a
 		fi
