@@ -1,0 +1,168 @@
+name: Test building external projects
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/projects.yml'
+      - 'install.sh'
+      - 'wrappers/*'
+      - 'fixinclude'
+      - 'lowercase'
+
+jobs:
+  test-build-dav1d:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates ninja-build winbind meson nasm
+          wine64 wineboot
+      - uses: actions/checkout@v3
+      - name: Download MSVC
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./install.sh $(pwd)/msvc
+      - name: Checkout gas-preprocessor
+        uses: actions/checkout@v3
+        with:
+          repository: ffmpeg/gas-preprocessor
+          ref: 9309c67acb535ca6248f092e96131d8eb07eefc1
+          path: gas-preprocessor
+      - name: Add gas-preprocessor to path
+        run: |
+          echo $(pwd)/gas-preprocessor >> $GITHUB_PATH
+      - name: Checkout dav1d
+        run: |
+          git clone https://code.videolan.org/videolan/dav1d.git
+          cd dav1d
+          git checkout 1.2.1
+      - name: Build dav1d
+        run: |
+          cd dav1d
+          mkdir build
+          cd build
+          export PATH=$(pwd)/../../msvc/bin/arm64:$PATH
+          cat >cross.txt <<EOF
+          [binaries]
+          c = 'cl'
+          cpp = 'cl'
+          ar = 'lib'
+          windres = 'rc'
+          ;exe_wrapper = ['wine']
+
+          [properties]
+          needs_exe_wrapper = true
+
+          [host_machine]
+          system = 'windows'
+          cpu_family = 'aarch64'
+          cpu = 'aarch64'
+          endian = 'little'
+          EOF
+
+          meson setup --cross-file cross.txt --buildtype release --prefix $(pwd)/../../install ..
+          ninja -v
+          ninja install
+          cp ../../msvc/vc/Redist/MSVC/1*/arm64/*.CRT/vcruntime*.dll ../../install/bin
+      # The build output from MSVC actually is redistributable, even if the
+      # toolchain itself isn't.
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dav1d
+          path: |
+            install/*
+          retention-days: 7
+
+  test-build-ffmpeg:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates winbind nasm
+          wine64 wineboot
+      - uses: actions/checkout@v3
+      - name: Download MSVC
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./install.sh $(pwd)/msvc
+      - name: Checkout gas-preprocessor
+        uses: actions/checkout@v3
+        with:
+          repository: ffmpeg/gas-preprocessor
+          ref: 9309c67acb535ca6248f092e96131d8eb07eefc1
+          path: gas-preprocessor
+      - name: Add gas-preprocessor to path
+        run: |
+          echo $(pwd)/gas-preprocessor >> $GITHUB_PATH
+      - name: Checkout ffmpeg
+        uses: actions/checkout@v3
+        with:
+          repository: ffmpeg/ffmpeg
+          ref: n6.0
+          path: ffmpeg
+      - name: Build ffmpeg
+        run: |
+          mkdir ffmpeg-build
+          cd ffmpeg-build
+          export PATH=$(pwd)/../msvc/bin/arm64:$PATH
+          ../ffmpeg/configure --arch=arm64 --target-os=win32 --toolchain=msvc --enable-cross-compile --prefix=$(pwd)/../install
+          make -j$(nproc)
+          make install
+      # The build output from MSVC actually is redistributable, even if the
+      # toolchain itself isn't.
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ffmpeg
+          path: |
+            install/*
+          retention-days: 7
+
+  test-build-llvm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind
+          wine64 wineboot
+      - uses: actions/checkout@v3
+      - name: Download MSVC
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./install.sh $(pwd)/msvc
+      - name: Checkout llvm-project
+        uses: actions/checkout@v3
+        with:
+          repository: llvm/llvm-project
+          ref: llvmorg-16.0.6
+          path: llvm-project
+      - name: Build LLVM/Clang
+        run: |
+          cd llvm-project/llvm
+          mkdir build
+          cd build
+          export PATH=$(pwd)/../../../msvc/bin/x64:$PATH
+          CC=cl cmake .. \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../../../install \
+            -DLLVM_TARGETS_TO_BUILD="ARM;AArch64;X86" \
+            -DLLVM_ENABLE_PROJECTS="lld;clang" \
+            -DLLVM_HOST_TRIPLE="x86_64-windows-msvc" \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=TRUE \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH=$(pwd)/../../../msvc
+          ninja
+          ninja install
+          cp ../../../msvc/vc/Redist/MSVC/1*/x64/*.CRT/vcruntime*.dll ../../../install/bin
+      # The build output from MSVC actually is redistributable, even if the
+      # toolchain itself isn't.
+      - uses: actions/upload-artifact@v3
+        with:
+          name: llvm
+          path: |
+            install/*
+          retention-days: 7
