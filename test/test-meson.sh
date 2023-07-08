@@ -60,15 +60,6 @@ MESON_ARGS=(
     --cross-file cross.txt
 )
 
-case $OSTYPE in
-    darwin*)
-        MESON_ARGS+=(
-            # No winbind package available on macOS.
-            # https://github.com/mstorsjo/msvc-wine/issues/6
-            --buildtype release
-        ) ;;
-esac
-
 export PATH="$BIN:$PATH"
 
 EXEC "" meson setup "$TESTS" "${MESON_ARGS[@]}"
