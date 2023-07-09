@@ -57,6 +57,7 @@ endian = 'little'
 EOF
 
 MESON_ARGS=(
+    --buildtype debugoptimized
     --cross-file cross.txt
 )
 
