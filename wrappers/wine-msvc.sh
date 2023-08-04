@@ -84,7 +84,9 @@ else
 
 	cleanup && mkfifo $WINE_MSVC_STDOUT $WINE_MSVC_STDERR || exit 1
 
-	sed -E "$WINE_MSVC_STDOUT_SED" <$WINE_MSVC_STDOUT &
-	sed -E "$WINE_MSVC_STDERR_SED" <$WINE_MSVC_STDERR >&2 &
-	WINEDEBUG=-all wine64 "$EXE" "${ARGS[@]}" &>/dev/null
+	WINEDEBUG=-all wine64 "$EXE" "${ARGS[@]}" &>/dev/null &
+	pid=$!
+	sed -E "$WINE_MSVC_STDOUT_SED" <$WINE_MSVC_STDOUT     || kill $pid &>/dev/null &
+	sed -E "$WINE_MSVC_STDERR_SED" <$WINE_MSVC_STDERR >&2 || kill $pid &>/dev/null &
+	wait $pid &>/dev/null
 fi
