@@ -27,6 +27,7 @@
 static HANDLE hStdIn  = INVALID_HANDLE_VALUE;
 static HANDLE hStdOut = INVALID_HANDLE_VALUE;
 static HANDLE hStdErr = INVALID_HANDLE_VALUE;
+static HANDLE hChildJob;
 
 static DWORD run(LPWSTR lpCmdLine)
 {
@@ -42,6 +43,11 @@ static DWORD run(LPWSTR lpCmdLine)
     DWORD dwExitCode;
     if (CreateProcessW(nullptr, lpCmdLine, nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi))
     {
+        if (hChildJob)
+        {
+            AssignProcessToJobObject(hChildJob, pi.hProcess);
+        }
+
         WaitForSingleObject(pi.hProcess, INFINITE);
 
         if (!GetExitCodeProcess(pi.hProcess, &dwExitCode))
@@ -122,6 +128,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (hStdErr == INVALID_HANDLE_VALUE)
     {
         hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+    }
+
+    if (hChildJob = CreateJobObjectW(nullptr, nullptr))
+    {
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION info = {};
+        info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+                                              | JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
+        SetInformationJobObject(hChildJob, JobObjectExtendedLimitInformation, &info, sizeof(info));
     }
 
     LPCWSTR const exe = PathFindFileNameW(argv[0]);
