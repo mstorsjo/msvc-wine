@@ -18,8 +18,8 @@ import sys
 import subprocess
 from pathlib import Path
 
-from msvc_wine_py.fixinclude import main as fixinclude
-from msvc_wine_py.lowercase import main as lowercase
+from .fixinclude import main as fixinclude
+from .lowercase import main as lowercase
 
 
 def ln_s(src, dst):
