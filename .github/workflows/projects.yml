@@ -4,10 +4,10 @@ on:
   pull_request:
     paths:
       - '.github/workflows/projects.yml'
-      - 'install.sh'
+      - 'install.py'
       - 'wrappers/*'
-      - 'fixinclude'
-      - 'lowercase'
+      - 'fixinclude.py'
+      - 'lowercase.py'
 
 jobs:
   test-build-dav1d:
@@ -21,7 +21,7 @@ jobs:
       - name: Download MSVC
         run: |
           ./vsdownload.py --accept-license --dest $(pwd)/msvc
-          ./install.sh $(pwd)/msvc
+          ./install.py $(pwd)/msvc
       - name: Checkout gas-preprocessor
         uses: actions/checkout@v3
         with:
@@ -84,7 +84,7 @@ jobs:
       - name: Download MSVC
         run: |
           ./vsdownload.py --accept-license --dest $(pwd)/msvc
-          ./install.sh $(pwd)/msvc
+          ./install.py $(pwd)/msvc
       - name: Checkout gas-preprocessor
         uses: actions/checkout@v3
         with:
@@ -128,7 +128,7 @@ jobs:
       - name: Download MSVC
         run: |
           ./vsdownload.py --accept-license --dest $(pwd)/msvc
-          ./install.sh $(pwd)/msvc
+          ./install.py $(pwd)/msvc
       - name: Checkout llvm-project
         uses: actions/checkout@v3
         with:
