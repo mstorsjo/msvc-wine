@@ -125,8 +125,10 @@ SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
 # either the out of the box filename or with the lowercase name.
 $ORIG/lowercase -map_winsdk -symlink kits/10/include/$SDKVER/um
 $ORIG/lowercase -map_winsdk -symlink kits/10/include/$SDKVER/shared
+$ORIG/lowercase -map_winsdk -symlink kits/10/include/$SDKVER/winrt
 $ORIG/fixinclude -map_winsdk kits/10/include/$SDKVER/um
 $ORIG/fixinclude -map_winsdk kits/10/include/$SDKVER/shared
+$ORIG/fixinclude -map_winsdk kits/10/include/$SDKVER/winrt
 for arch in x86 x64 arm arm64; do
     if [ ! -d "kits/10/lib/$SDKVER/um/$arch" ]; then
         continue
