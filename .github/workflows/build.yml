@@ -15,7 +15,7 @@ jobs:
       - name: Download MSVC
         run: |
           ./vsdownload.py --accept-license --dest $(pwd)/msvc
-          ./install.sh $(pwd)/msvc
+          ./install.py $(pwd)/msvc
       - name: Test using the installed tools
         run: |
           test/test.sh $(pwd)/msvc
@@ -33,7 +33,7 @@ jobs:
       - name: Download MSVC
         run: |
           ./vsdownload.py --accept-license --dest $(pwd)/msvc
-          ./install.sh $(pwd)/msvc
+          ./install.py $(pwd)/msvc
       - name: Test using the installed tools
         run: |
           test/test.sh $(pwd)/msvc
@@ -65,7 +65,7 @@ jobs:
       - name: Download MSVC
         run: |
           ./vsdownload.py --accept-license --dest $(pwd)/msvc
-          ./install.sh $(pwd)/msvc
+          ./install.py $(pwd)/msvc
       - name: Test using the installed tools
         run: |
           test/test-clang-cl.sh $(pwd)/msvc
