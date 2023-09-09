@@ -112,6 +112,8 @@ point it specifically towards the MSVC installation, e.g. like this:
 clang-cl -c hello.c
 lld-link hello.obj -out:hello.exe
 
+clang-cl hello.c -Fehello.exe -fuse-ld=lld
+
 clang --target=x86_64-windows-msvc hello.c -fuse-ld=lld -o hello.exe
 ```
 
@@ -124,6 +126,11 @@ on what name they are invoked as.)
 
 Do note that older versions of Clang/LLD might not work out of the box with the libraries from the very latest
 MSVC/WinSDK. Currently, at least Clang/LLD 13 seems to be required for MSVC 2019 16.8 or newer.
+
+Also, do note that when driving the linking via `clang-cl` or `clang`, it
+defaults to looking for `link.exe`. Since we're probably not intending on
+using the Wine wrapped `link.exe`, make sure to pass `-fuse-ld=lld` to make it
+prefer `lld-link` instead.
 
 # FAQ
 
