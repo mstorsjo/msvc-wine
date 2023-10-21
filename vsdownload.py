@@ -60,7 +60,11 @@ def getArgsParser():
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
     if findPackage(packages, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", None, warn=False):
-        args.package.extend(["Win10SDK_" + sdk, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", "Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM", "Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM64"])
+        if sdk.startswith("10.0.") and int(sdk[5:]) >= 22000:
+            sdkpkg = "Win11SDK_" + sdk
+        else:
+            sdkpkg = "Win10SDK_" + sdk
+        args.package.extend([sdkpkg, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", "Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM", "Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM64"])
     else:
         # Options for toolchains for specific versions. The latest version in
         # each manifest isn't available as a pinned version though, so if that
@@ -112,6 +116,20 @@ def setPackageSelection(args, packages):
         setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.29.16.11", defaultPackages)
     elif args.msvc_version == "17.0":
         setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.30.17.0", defaultPackages)
+    elif args.msvc_version == "17.1":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.31.17.1", defaultPackages)
+    elif args.msvc_version == "17.2":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.32.17.2", defaultPackages)
+    elif args.msvc_version == "17.3":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.33.17.3", defaultPackages)
+    elif args.msvc_version == "17.4":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.34.17.4", defaultPackages)
+    elif args.msvc_version == "17.5":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.35.17.5", defaultPackages)
+    elif args.msvc_version == "17.6":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.36.17.6", defaultPackages)
+    elif args.msvc_version == "17.7":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.37.17.7", defaultPackages)
 
     elif args.msvc_version == "15.4":
         setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.11", defaultPackages)
