@@ -41,10 +41,10 @@ for a; do
 		path=${a#*:}
 		# Rewrite options like -MANIFESTINPUT:/absolute/path into -MANIFESTINPUT:z:/absolute/path.
 		;;
-	@*.rsp)
+	@*CMakeFiles*.rsp)
 		# Rewrite absolute paths in response files like /absolute/path into z:/absolute/path.
 		filepath=$(realpath "${a:1}")
-		perl -pi -e  's@\s(\/(?:(?:[^\/ ]+)\/+)+(?:[^\/ ]+))@ Z:\1 @g' "$filepath"
+		sed -i -r 's@(^| |\n)(\/(([^\/ \n]+)\/+)+([^\/ \n]+))@Z:\2 @g' "$filepath"
 		;;
 	/*)
 		# Rewrite options like /absolute/path into z:/absolute/path.
