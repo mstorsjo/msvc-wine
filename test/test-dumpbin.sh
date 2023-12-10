@@ -20,7 +20,7 @@
 EXEC cl-Z7 ${BIN}cl /Z7 ${TESTS}hello.c
 EXEC dumpbin-PDBPATH ${BIN}dumpbin /nologo /PDBPATH "${CWD}hello.exe"
 head -n5 dumpbin-PDBPATH.out > dumpbin-PDBPATH.out.head-n5
-DIFF - dumpbin-PDBPATH.out.head-n5 <<EOF
+DIFF dumpbin-PDBPATH.out.head-n5 - <<EOF
 
 Dump of file ${CWD}hello.exe
 

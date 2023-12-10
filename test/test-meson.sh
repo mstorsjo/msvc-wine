@@ -70,9 +70,9 @@ EXEC "" ninja -v
 EXEC ninja-rerun ninja -d explain -v
 # Since meson 0.63.0, it generates some extra meta rules, causing the stderr
 # output not to be empty here.
-# DIFF - ninja-rerun.err <<EOF
+# DIFF ninja-rerun.err - <<EOF
 # EOF
-DIFF - ninja-rerun.out <<EOF
+DIFF ninja-rerun.out - <<EOF
 ninja: no work to do.
 EOF
 

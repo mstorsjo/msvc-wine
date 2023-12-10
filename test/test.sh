@@ -51,7 +51,7 @@ EXEC() {
 }
 
 DIFF() {
-    git --no-pager diff --no-index "$@"
+    git --no-pager diff --no-index -R "$@"
     local ec=$?
     num_of_tests=$(($num_of_tests+1))
     if [ $ec -ne 0 ]; then
