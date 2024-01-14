@@ -105,7 +105,9 @@ fi
 ln_s Lib lib
 ln_s Include include
 cd ../..
-SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
+
+SDKVER=$(basename $(echo kits/10/include/10.* | awk '{print $NF}'))
+echo Using SDK version $SDKVER
 
 # Lowercase the SDK headers and libraries. As long as cl.exe is executed
 # within wine, this is mostly not necessary.
@@ -141,9 +143,11 @@ if [ "$(uname -m)" = "aarch64" ]; then
     host=arm64
 fi
 
-SDKVER=$(basename $(echo kits/10/include/* | awk '{print $NF}'))
 MSVCVER=$(basename $(echo vc/tools/msvc/* | awk '{print $1}'))
+echo Using MSVC version $MSVCVER
+
 cat $ORIG/wrappers/msvcenv.sh | sed 's/MSVCVER=.*/MSVCVER='$MSVCVER/ | sed 's/SDKVER=.*/SDKVER='$SDKVER/ | sed s/x64/$host/ > msvcenv.sh
+
 for arch in x86 x64 arm arm64; do
     if [ ! -d "vc/tools/msvc/$MSVCVER/bin/Hostx64/$arch" ]; then
         continue
