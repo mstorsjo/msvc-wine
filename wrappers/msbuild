@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# Copyright (c) 2024 Sergey Kvachonok
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+. $(dirname $0)/msvcenv.sh
+
+# By default, the platform-specific settings for the current project override
+# the PATH, INCLUDE, LIB, LIBPATH, CONFIGURATION, and PLATFORM environment
+# variables. Set the 'UseEnv' property to true to guarantee that the environment
+# variables don't get overridden.
+#
+# https://learn.microsoft.com/en-us/cpp/build/reference/msbuild-visual-cpp-overview?view=msvc-170#useenv-property
+export UseEnv=true
+
+# Set MSBuild-specific Platform property via an environment variable.
+# 'Platform' property names do not match ARCH names exactly.
+#
+# https://learn.microsoft.com/en-us/cpp/build/reference/msbuild-visual-cpp-overview?view=msvc-170#support-file-directories
+# https://learn.microsoft.com/en-us/cpp/build/reference/vcxproj-file-structure?view=msvc-170#projectconfiguration-elements
+case ${ARCH} in
+x86)
+    export Platform=Win32
+    ;;
+arm)
+    export Platform=ARM
+    ;;
+arm64)
+    export Platform=ARM64
+    ;;
+*)
+    export Platform=${ARCH}
+    ;;
+esac
+
+$(dirname $0)/wine-msvc.sh ${MSBUILDBINDIR}/MSBuild.exe "$@"
