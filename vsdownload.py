@@ -565,9 +565,13 @@ def moveVCSDK(unpack, dest):
         kitsPath = os.path.join(kitsPath, "Program Files")
     kitsPath = os.path.join(kitsPath, "Windows Kits", "10")
     mergeTrees(kitsPath, os.path.join(dest, "kits", "10"))
+
+    # Move other VC components directories:
     # The DIA SDK isn't necessary for normal use, but can be used when e.g.
     # compiling LLVM.
-    mergeTrees(os.path.join(unpack, "DIA SDK"), os.path.join(dest, "DIA SDK"))
+    # MSBuild is the standard VC build tool.
+    for extraDir in "DIA SDK", "MSBuild":
+        mergeTrees(os.path.join(unpack, extraDir), os.path.join(dest, extraDir))
 
 if __name__ == "__main__":
     parser = getArgsParser()
