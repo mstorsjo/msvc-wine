@@ -139,14 +139,22 @@ for arch in x86 x64 arm arm64; do
 done
 
 host=x64
+# .NET-based tools use different host arch directories
+dotnet_host=amd64
 if [ "$(uname -m)" = "aarch64" ]; then
     host=arm64
+    dotnet_host=arm64
 fi
 
 MSVCVER=$(basename $(echo vc/tools/msvc/* | awk '{print $1}'))
 echo Using MSVC version $MSVCVER
 
-cat $ORIG/wrappers/msvcenv.sh | sed 's/MSVCVER=.*/MSVCVER='$MSVCVER/ | sed 's/SDKVER=.*/SDKVER='$SDKVER/ | sed s/x64/$host/ > msvcenv.sh
+cat $ORIG/wrappers/msvcenv.sh \
+| sed 's/MSVCVER=.*/MSVCVER='$MSVCVER/ \
+| sed 's/SDKVER=.*/SDKVER='$SDKVER/ \
+| sed s/x64/$host/ \
+| sed s/amd64/$dotnet_host/ \
+> msvcenv.sh
 
 for arch in x86 x64 arm arm64; do
     if [ ! -d "vc/tools/msvc/$MSVCVER/bin/Hostx64/$arch" ]; then
