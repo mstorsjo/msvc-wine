@@ -98,6 +98,13 @@ for arch in x86 x64 arm arm64; do
     EXEC "" BIN=$BIN ./test-midl.sh
     EXEC "" BIN=$BIN ./test-cmake.sh
     EXEC "" BIN=$BIN ./test-meson.sh
+
+    # MSBuild requires .NET framework v4.x or Mono to run.
+    if [[   -d /usr/share/wine/mono \
+         || -d /usr/local/share/wine/mono \
+         || -d /opt/wine/mono ]]; then
+        EXEC "" BIN=$BIN ./test-msbuild.sh
+    fi
 done
 
 EXIT
