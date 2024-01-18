@@ -17,8 +17,10 @@
 . "${0%/*}/test.sh"
 
 for config in Debug Release; do
-    EXEC "" ${BIN}msbuild /p:Configuration=${config} "${TESTS}HelloWorld.vcxproj"
-    rm -rf "${TESTS}/${config}"
+    for useenv in true false; do
+        EXEC "" ${BIN}msbuild /p:UseEnv=${useenv} /p:Configuration=${config} "${TESTS}HelloWorld.vcxproj"
+        rm -rf "${TESTS}/${config}"
+    done
 done
 
 EXIT

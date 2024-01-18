@@ -22,7 +22,29 @@
 # variables don't get overridden.
 #
 # https://learn.microsoft.com/en-us/cpp/build/reference/msbuild-visual-cpp-overview?view=msvc-170#useenv-property
-export UseEnv=true
+#export UseEnv=true
+
+# Do not try to find the VC and Windows SDK install paths in the Registry.
+export DisableRegistryUse=true
+
+# Set these MSBuild properties using environment variables so that MSVC project
+# builds work the same with both `UseEnv=true` and `UseEnv=false`.
+#
+# These properties are used in various .props files found in `MSBuild/Microsoft/VC/v170`.
+export VCToolsVersion="$MSVCVER"
+export VCInstallDir_170="${MSVCBASE}\\"
+export VCToolsInstallDir_170="${MSVCDIR}\\"
+export MicrosoftKitRoot="${BASE}\\"
+export WindowsSdkDir_10="${SDKBASE}\\"
+export UniversalCRTSdkDir_10="$WindowsSdkDir_10"
+export WindowsSdkDir="$WindowsSdkDir_10"
+export UniversalCRTSdkDir="$UniversalCRTSdkDir_10"
+export WindowsTargetPlatformVersion="$SDKVER"
+export UCRTContentRoot="$UniversalCRTSdkDir_10"
+# These should point to the NETFX SDK, which may or may not be located
+# in the common Windows SDK directory.
+export NETFXKitsDir="$WindowsSdkDir"
+export NETFXSDKDir="$WindowsSdkDir"
 
 # Set MSBuild-specific Platform property via an environment variable.
 # 'Platform' property names do not match ARCH names exactly.
