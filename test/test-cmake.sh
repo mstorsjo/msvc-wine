@@ -30,9 +30,6 @@ CMAKE_ARGS=(
 case $OSTYPE in
     darwin*)
         CMAKE_ARGS+=(
-            # mt.exe always crashes on macOS.
-            -DCMAKE_EXE_LINKER_FLAGS=/MANIFEST:NO
-            -DCMAKE_SHARED_LINKER_FLAGS=/MANIFEST:NO
             # No winbind package available on macOS.
             # https://github.com/mstorsjo/msvc-wine/issues/6
             -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
