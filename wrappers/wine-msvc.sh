@@ -14,14 +14,9 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-EXE=$(dirname $0)/../msvctricks.exe
-if [ -f "$EXE" ]; then
-	HAS_MSVCTRICKS=true
-else
-	HAS_MSVCTRICKS=false
-	EXE=$1
-	shift
-fi
+MSVCTRICKS_EXE="$(dirname $0)/../msvctricks.exe"
+EXE="$1"
+shift
 
 ARGS=()
 while [ $# -gt 0 ]; do
@@ -65,11 +60,19 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
+WINE=wine64
+export WINEDEBUG=${WINEDEBUG:-"-all"}
+
+if [ -n "$WINE_MSVC_RAW_STDOUT" ]; then
+	$WINE "$EXE" "${ARGS[@]}"
+	exit $?
+fi
+
 WINE_MSVC_STDOUT_SED='s/\r//;'"$WINE_MSVC_STDOUT_SED"
 WINE_MSVC_STDERR_SED='s/\r//;'"$WINE_MSVC_STDERR_SED"
 
-if ! $HAS_MSVCTRICKS; then
-	WINEDEBUG=-all wine64 "$EXE" "${ARGS[@]}" 2> >(sed -E "$WINE_MSVC_STDERR_SED" >&2) | sed -E "$WINE_MSVC_STDOUT_SED"
+if [ ! -f "$MSVCTRICKS_EXE" ]; then
+	$WINE "$EXE" "${ARGS[@]}" 2> >(sed -E "$WINE_MSVC_STDERR_SED" >&2) | sed -E "$WINE_MSVC_STDOUT_SED"
 	exit $PIPESTATUS
 else
 	export WINE_MSVC_STDOUT=${TMPDIR:-/tmp}/wine-msvc.stdout.$$
@@ -84,7 +87,7 @@ else
 
 	cleanup && mkfifo $WINE_MSVC_STDOUT $WINE_MSVC_STDERR || exit 1
 
-	WINEDEBUG=-all wine64 "$EXE" "${ARGS[@]}" &>/dev/null &
+	$WINE "$MSVCTRICKS_EXE" "$EXE" "${ARGS[@]}" &>/dev/null &
 	pid=$!
 	sed -E "$WINE_MSVC_STDOUT_SED" <$WINE_MSVC_STDOUT     || kill $pid &>/dev/null &
 	sed -E "$WINE_MSVC_STDERR_SED" <$WINE_MSVC_STDERR >&2 || kill $pid &>/dev/null &
