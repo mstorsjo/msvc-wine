@@ -16,6 +16,7 @@
 
 import argparse
 import functools
+import glob
 import hashlib
 import os
 import multiprocessing.pool
@@ -56,6 +57,7 @@ def getArgsParser():
     parser.add_argument("--keep-unpack", const=True, action="store_const", help="Keep the unpacked files that aren't otherwise selected as needed output")
     parser.add_argument("--msvc-version", metavar="version", help="Install a specific MSVC toolchain version")
     parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
+    parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
     return parser
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
@@ -517,6 +519,10 @@ def unpackVsix(file, dest, listing):
     contents = os.path.join(temp, "Contents")
     if os.access(contents, os.F_OK):
         mergeTrees(contents, dest)
+    # This archive directory structure is used in WDK.vsix.
+    msbuild = os.path.join(temp, "$MSBuild")
+    if os.access(msbuild, os.F_OK):
+        mergeTrees(msbuild, os.path.join(dest, "MSBuild"))
     shutil.rmtree(temp)
 
 def unpackWin10SDK(src, payloads, dest):
@@ -535,6 +541,51 @@ def unpackWin10SDK(src, payloads, dest):
                 cmd = ["msiextract", "-C", dest, srcfile]
             with open(os.path.join(dest, "WinSDK-" + getPayloadName(payload) + "-listing.txt"), "w") as log:
                 subprocess.check_call(cmd, stdout=log)
+
+def unpackWin10WDK(src, dest):
+    print("Unpacking WDK installers from", src)
+
+    # WDK installers downloaded by wdksetup.exe include a huge pile of
+    # non-WDK installers, just skip these.
+    for srcfile in glob.glob(src + "/Windows Driver*.msi"):
+        name = os.path.basename(srcfile)
+        print("Extracting", name)
+
+        # Do not try to run msiexec here because TARGETDIR
+        # does not work with WDK installers.
+        cmd = ["msiextract", "-C", dest, srcfile]
+
+        payloadName, _ = os.path.splitext(name)
+        with open(os.path.join(dest, "WDK-" + payloadName + "-listing.txt"), "w") as log:
+            subprocess.check_call(cmd, stdout=log)
+
+    # WDK includes a VS extension, unpack it before copying the extracted files.
+    for vsix in glob.glob(dest + "/**/WDK.vsix", recursive=True):
+        name = os.path.basename(vsix)
+        print("Unpacking WDK VS extension", name)
+
+        payloadName, _ = os.path.splitext(name)
+        listing = os.path.join(dest, "WDK-VS-" + payloadName + "-listing.txt")
+        unpackVsix(vsix, dest, listing)
+
+    # Merge incorrectly extracted 'Build' and 'build' directory trees.
+    # The WDK 'build' tree must be versioned.
+    kitsPath = os.path.join(dest, "Program Files", "Windows Kits", "10")
+    brokenBuildDir = os.path.join(kitsPath, "Build")
+    for buildDir in glob.glob(kitsPath + "/build/10.*/"):
+        wdkVersion = buildDir.split('/')[-2];
+        print("Merging WDK 'Build' and 'build' directories into version", wdkVersion);
+        mergeTrees(brokenBuildDir, buildDir)
+    shutil.rmtree(brokenBuildDir)
+
+    # Move the WDK .props files into a versioned directory.
+    propsPath = os.path.join(kitsPath, "DesignTime", "CommonConfiguration", "Neutral", "WDK");
+    versionedPath = os.path.join(propsPath, wdkVersion)
+    makedirs(versionedPath)
+    for props in glob.glob(propsPath + "/*.props"):
+        filename = os.path.basename(props)
+        print("Moving", filename, "into version", wdkVersion);
+        shutil.move(props, os.path.join(versionedPath, filename))
 
 def extractPackages(selected, cache, dest):
     makedirs(dest)
@@ -647,6 +698,9 @@ if __name__ == "__main__":
             unpack = os.path.join(dest, "unpack")
 
         extractPackages(selected, cache, unpack)
+
+        if args.with_wdk_installers is not None:
+            unpackWin10WDK(args.with_wdk_installers, unpack)
 
         if not args.only_unpack:
             moveVCSDK(unpack, dest)
