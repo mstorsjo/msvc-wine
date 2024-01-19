@@ -17,13 +17,6 @@
 . "${0%/*}/test.sh"
 
 
-case $OSTYPE in
-    darwin*)
-        # mt.exe always crashes on macOS.
-        EXIT ;;
-esac
-
-
 # https://gitlab.kitware.com/cmake/cmake/-/blob/v3.26.0/Source/cmcmd.cxx#L2405
 # https://github.com/mstorsjo/msvc-wine/pull/63
 mtRetIsUpdate() {
@@ -36,8 +29,8 @@ mtRetIsUpdate() {
     fi
 }
 
-EXEC mt-notify_update-1 mtRetIsUpdate ${BIN}mt /nologo /manifest ${TESTS}utf8.manifest /out:output.manifest /notify_update
-EXEC mt-notify_update-2               ${BIN}mt /nologo /manifest ${TESTS}utf8.manifest /out:output.manifest /notify_update
+EXEC "" mtRetIsUpdate ${BIN}mt /nologo /manifest ${TESTS}utf8.manifest /out:output.manifest /notify_update
+EXEC ""               ${BIN}mt /nologo /manifest ${TESTS}utf8.manifest /out:output.manifest /notify_update
 
 
 EXIT
