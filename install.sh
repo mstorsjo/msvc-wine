@@ -125,17 +125,32 @@ echo Using SDK version $SDKVER
 # The original casing of file names is preserved though, by adding lowercase
 # symlinks instead of doing a plain rename, so files can be referred to with
 # either the out of the box filename or with the lowercase name.
-$ORIG/lowercase -map_winsdk -symlink kits/10/include/$SDKVER/um
-$ORIG/lowercase -map_winsdk -symlink kits/10/include/$SDKVER/shared
-$ORIG/lowercase -map_winsdk -symlink kits/10/include/$SDKVER/winrt
-$ORIG/fixinclude -map_winsdk kits/10/include/$SDKVER/um
-$ORIG/fixinclude -map_winsdk kits/10/include/$SDKVER/shared
-$ORIG/fixinclude -map_winsdk kits/10/include/$SDKVER/winrt
-for arch in x86 x64 arm arm64; do
-    if [ ! -d "kits/10/lib/$SDKVER/um/$arch" ]; then
-        continue
+for incdir in um shared winrt km; do
+    SDK_INCDIR="kits/10/include/$SDKVER/$incdir"
+
+    if [ -d "$SDK_INCDIR" ]; then
+        $ORIG/lowercase -map_winsdk -symlink "$SDK_INCDIR"
+        $ORIG/fixinclude -map_winsdk "$SDK_INCDIR"
     fi
-    $ORIG/lowercase -symlink kits/10/lib/$SDKVER/um/$arch
+done
+
+# The WDF is a part of the Windows Driver Kit.
+WDF_INCDIR="kits/10/include/wdf"
+if [ -d "$WDF_INCDIR" ]; then
+    $ORIG/lowercase -map_winsdk -symlink "$WDF_INCDIR"
+    $ORIG/fixinclude -map_winsdk "$WDF_INCDIR"
+fi
+
+for arch in x86 x64 arm arm64; do
+    SDK_LIBDIR="kits/10/lib/$SDKVER/um/$arch"
+    DDK_LIBDIR="kits/10/lib/$SDKVER/km/$arch"
+
+    if [ -d "$SDK_LIBDIR" ]; then
+        $ORIG/lowercase -symlink "$SDK_LIBDIR"
+    fi
+    if [ -d "$DDK_LIBDIR" ]; then
+        $ORIG/lowercase -symlink "$DDK_LIBDIR"
+    fi
 done
 
 host=x64
