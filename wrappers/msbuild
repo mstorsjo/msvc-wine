@@ -66,4 +66,5 @@ arm64)
     ;;
 esac
 
+export WINE_MSVC_RAW_STDOUT=1
 $(dirname $0)/wine-msvc.sh ${MSBUILDBINDIR}/MSBuild.exe "$@"
