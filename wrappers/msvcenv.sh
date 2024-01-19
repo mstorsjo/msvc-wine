@@ -34,8 +34,8 @@ SDKLIB="$SDKBASE\\lib\\$SDKVER"
 BINDIR=$BASE_UNIX/vc/tools/msvc/$MSVCVER/bin/Hostx64/$ARCH
 SDKBINDIR=$BASE_UNIX/$SDK_UNIX/bin/$SDKVER/x64
 MSBUILDBINDIR=$BASE_UNIX/MSBuild/Current/Bin/amd64
-export INCLUDE="$MSVCDIR\\include;$SDKINCLUDE\\shared;$SDKINCLUDE\\ucrt;$SDKINCLUDE\\um;$SDKINCLUDE\\winrt"
-export LIB="$MSVCDIR\\lib\\$ARCH;$SDKLIB\\ucrt\\$ARCH;$SDKLIB\\um\\$ARCH"
+export INCLUDE="$MSVCDIR\\include;$SDKINCLUDE\\shared;$SDKINCLUDE\\ucrt;$SDKINCLUDE\\um;$SDKINCLUDE\\winrt;$SDKINCLUDE\\km"
+export LIB="$MSVCDIR\\lib\\$ARCH;$SDKLIB\\ucrt\\$ARCH;$SDKLIB\\um\\$ARCH;$SDKLIB\\km\\$ARCH"
 export LIBPATH="$LIB"
 # "$MSVCDIR\\bin\\Hostx64\\x64" is included in PATH for DLLs.
 export WINEPATH="${BINDIR//\//\\};${SDKBINDIR//\//\\};$MSVCDIR\\bin\\Hostx64\\x64"
