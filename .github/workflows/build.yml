@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          brew install wine-stable msitools cmake ninja meson
+          brew update && brew install wine-stable msitools cmake ninja meson
           wine64 wineboot
       - uses: actions/checkout@v3
       - name: Download MSVC
