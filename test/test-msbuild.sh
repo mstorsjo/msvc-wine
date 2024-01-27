@@ -18,8 +18,13 @@
 
 for config in Debug Release; do
     for useenv in true false; do
-        EXEC "" ${BIN}msbuild /p:UseEnv=${useenv} /p:Configuration=${config} "${TESTS}HelloWorld.vcxproj"
-        rm -rf "${TESTS}/${config}"
+        # Trailing slash is required in MSBuild directory properties.
+        OUTDIR="Z:${CWD}useenv-${useenv}/${config}/"
+
+        EXEC "" ${BIN}msbuild \
+          /p:UseEnv=${useenv} /p:Configuration=${config} \
+          /p:IntDir="${OUTDIR}" /p:OutDir="${OUTDIR}" \
+          "${TESTS}HelloWorld.vcxproj"
     done
 done
 
