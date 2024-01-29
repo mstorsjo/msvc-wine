@@ -8,7 +8,7 @@ RUN apt-get update && \
 
 # Initialize the wine environment. Wait until the wineserver process has
 # exited before closing the session, to avoid corrupting the wine prefix.
-RUN wine64 wineboot --init && \
+RUN $(command -v wine64 || command -v wine || false) wineboot --init && \
     while pgrep wineserver > /dev/null; do sleep 1; done
 
 WORKDIR /opt/msvc
@@ -26,4 +26,4 @@ COPY msvcenv-native.sh /opt/msvc
 # Later stages which actually uses MSVC can ideally start a persistent
 # wine server like this:
 #RUN wineserver -p && \
-#    wine64 wineboot && \
+#    $(command -v wine64 || command -v wine || false) wineboot && \
