@@ -5,7 +5,7 @@ COPY test/hello.c ./
 
 RUN \
     wineserver -p && \
-    wine64 wineboot && \
+    $(command -v wine64 || command -v wine || false) wineboot && \
     for arch in x86 x64 arm arm64; do \
         /opt/msvc/bin/$arch/cl hello.c -Fehello-$arch.exe || exit 1; \
     done

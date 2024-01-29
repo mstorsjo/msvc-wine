@@ -60,7 +60,7 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-WINE=wine64
+WINE=$(command -v wine64 || command -v wine || false)
 export WINEDEBUG=${WINEDEBUG:-"-all"}
 
 if [ -n "$WINE_MSVC_RAW_STDOUT" ]; then
