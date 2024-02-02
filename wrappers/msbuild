@@ -66,5 +66,10 @@ arm64)
     ;;
 esac
 
+if [[ "${MSBUILDBINDIR}" == *amd64 ]]; then
+    # Prefer x86_64 build tools for any target arch.
+    export PreferredToolArchitecture=x64
+fi
+
 export WINE_MSVC_RAW_STDOUT=1
 $(dirname $0)/wine-msvc.sh ${MSBUILDBINDIR}/MSBuild.exe "$@"
