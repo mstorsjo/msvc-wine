@@ -38,6 +38,8 @@ jobs:
         run: |
           brew update && brew install wine-stable msitools cmake ninja meson
           wine64 wineboot
+          curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-9.0.0/wine-mono-9.0.0-x86.msi
+          wine64 msiexec /i wine-mono-9.0.0-x86.msi
       - uses: actions/checkout@v3
       - name: Download MSVC
         run: |
