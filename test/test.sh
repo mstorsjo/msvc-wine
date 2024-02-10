@@ -109,6 +109,10 @@ for arch in x86 x64 arm arm64; do
          || -d /usr/local/share/wine/mono \
          || -d /opt/wine/mono ]]; then
         EXEC "" BIN=$BIN ./test-msbuild.sh
+
+        if [[ -n $HAVE_WDK && ($arch == "x64" || $arch == "arm64") ]]; then
+            EXEC "" BIN=$BIN ./test-wdk-msbuild.sh
+        fi
     fi
 done
 
