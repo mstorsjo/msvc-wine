@@ -1,0 +1,56 @@
+;
+; test.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider=%ManufacturerName%
+CatalogFile=test.cat
+DriverVer=
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+test.sys  = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$.10.0
+
+[Standard.NT$ARCH$.10.0]
+%test.DeviceDesc%=test_Device, Root\test
+
+[test_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+test.sys
+
+;-------------- Service installation
+[test_Device.NT.Services]
+AddService = test,%SPSVCINST_ASSOCSERVICE%, test_Service_Inst
+
+; -------------- test driver install sections
+[test_Service_Inst]
+DisplayName    = %test.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\test.sys
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="test manufacturer name"
+DiskName = "test Installation Disk"
+test.DeviceDesc = "test Device"
+test.SVCDESC = "test Service"
