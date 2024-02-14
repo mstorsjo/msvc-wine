@@ -13,7 +13,7 @@ jobs:
           wine64 wineboot
           curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-5.1.1/wine-mono-5.1.1-x86.msi
           wine64 msiexec /i wine-mono-5.1.1-x86.msi
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
           ./vsdownload.py --accept-license --dest $(pwd)/msvc
@@ -33,7 +33,7 @@ jobs:
           wine64 wineboot
           curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-9.0.0/wine-mono-9.0.0-x86.msi
           wine64 msiexec /i wine-mono-9.0.0-x86.msi
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
           ./vsdownload.py --accept-license --dest $(pwd)/msvc
@@ -65,7 +65,7 @@ jobs:
           if [ ! -e /usr/bin/lld-link ]; then
               sudo ln -s /usr/bin/lld /usr/bin/lld-link
           fi
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
           ./vsdownload.py --accept-license --dest $(pwd)/msvc
@@ -79,7 +79,7 @@ jobs:
   test-docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build the main msvc-wine docker image
         run: |
           docker build -t msvc-wine -f Dockerfile .
