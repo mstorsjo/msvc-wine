@@ -35,7 +35,7 @@ jobs:
         run: |
           git clone https://code.videolan.org/videolan/dav1d.git
           cd dav1d
-          git checkout 1.2.1
+          git checkout 1.4.0
       - name: Build dav1d
         run: |
           cd dav1d
@@ -98,7 +98,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ffmpeg/ffmpeg
-          ref: n6.0
+          ref: n6.1.1
           path: ffmpeg
       - name: Build ffmpeg
         run: |
@@ -133,7 +133,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: llvm/llvm-project
-          ref: llvmorg-16.0.6
+          ref: llvmorg-18.1.0-rc2
           path: llvm-project
       - name: Build LLVM/Clang
         run: |
