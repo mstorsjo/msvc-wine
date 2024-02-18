@@ -11,6 +11,8 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind meson
           wine64 wineboot
+          curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-5.1.1/wine-mono-5.1.1-x86.msi
+          wine64 msiexec /i wine-mono-5.1.1-x86.msi
       - uses: actions/checkout@v3
       - name: Download MSVC
         run: |
