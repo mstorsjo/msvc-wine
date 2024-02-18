@@ -3,22 +3,13 @@ on:
   push:
   pull_request:
 
-env:
-  # See <https://wiki.winehq.org/Mono#Versions> before changing.
-  WINE_MONO_VERSION: "7.4.0"
-
 jobs:
   test-msvc-wine-linux:
     runs-on: ubuntu-latest
     steps:
       - name: Install prerequisites
         run: |
-          sudo mkdir -pm755 /etc/apt/keyrings
-          sudo wget -nv -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
-          sudo wget -nv -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources
-          sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install winehq-stable python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind meson
-          wget -nv -P /var/tmp https://dl.winehq.org/wine/wine-mono/${WINE_MONO_VERSION}/wine-mono-${WINE_MONO_VERSION}-x86.tar.xz
-          sudo mkdir -p /opt/wine/mono && sudo tar -xf /var/tmp/wine-mono-${WINE_MONO_VERSION}-x86.tar.xz -C /opt/wine/mono
+          sudo apt-get update && sudo apt-get install wine64-development python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind meson
           wine64 wineboot
       - uses: actions/checkout@v3
       - name: Download MSVC
