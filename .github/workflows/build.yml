@@ -14,7 +14,7 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo dpkg --add-architecture i386 && sudo apt-get update
-          sudo apt-get install wine64 wine32 python3 msitools python3-simplejson python3-six ca-certificates cmake ninja-build winbind meson
+          sudo apt-get install wine64 wine32 python3 msitools ca-certificates cmake ninja-build winbind meson
           wine64 wineboot
           curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-5.1.1/wine-mono-5.1.1-x86.msi
           wine64 msiexec /i wine-mono-5.1.1-x86.msi
@@ -63,7 +63,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          sudo apt-get update && sudo apt-get install python3 msitools python3-simplejson python3-six ca-certificates clang lld llvm cmake ninja-build
+          sudo apt-get update && sudo apt-get install python3 msitools ca-certificates clang lld llvm cmake ninja-build
       - name: Set up clang-cl/lld-link symlinks
         run: |
           if [ ! -e /usr/bin/clang-cl ]; then
