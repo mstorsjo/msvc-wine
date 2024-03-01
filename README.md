@@ -48,7 +48,7 @@ The following instructions are for setting up MSVC without docker.
 
 ```bash
 apt-get update
-apt-get install -y wine64-development python3 msitools python3-simplejson python3-six ca-certificates winbind
+apt-get install -y wine64-development python3 msitools ca-certificates winbind
 ```
 
 ## Installation
@@ -89,7 +89,7 @@ as usual. You need less prerequisites as wine won't be needed:
 
 ```bash
 apt-get update
-apt-get install -y python3 msitools python3-simplejson python3-six ca-certificates
+apt-get install -y python3 msitools ca-certificates
 
 # Download and unpack MSVC
 ./vsdownload.py --dest ~/my_msvc
