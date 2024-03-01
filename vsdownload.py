@@ -20,16 +20,13 @@ import glob
 import hashlib
 import os
 import multiprocessing.pool
-try:
-    import simplejson
-except ModuleNotFoundError:
-    import json as simplejson
-import six
+import json
 import shutil
 import socket
 import subprocess
 import sys
 import tempfile
+import urllib.request
 import zipfile
 
 def getArgsParser():
@@ -174,7 +171,7 @@ def getManifest(args):
     if args.manifest == None:
         url = "https://aka.ms/vs/%s/%s/channel" % (args.major, args.type)
         print("Fetching %s" % (url))
-        manifest = simplejson.loads(six.moves.urllib.request.urlopen(url).read())
+        manifest = json.loads(urllib.request.urlopen(url).read())
         print("Got toplevel manifest for %s" % (manifest["info"]["productDisplayVersion"]))
         for item in manifest["channelItems"]:
             if "type" in item and item["type"] == "Manifest":
@@ -186,8 +183,8 @@ def getManifest(args):
     if not args.manifest.startswith("http"):
         args.manifest = "file:" + args.manifest
 
-    manifestdata = six.moves.urllib.request.urlopen(args.manifest).read()
-    manifest = simplejson.loads(manifestdata)
+    manifestdata = urllib.request.urlopen(args.manifest).read()
+    manifest = json.loads(manifestdata)
     print("Loaded installer manifest for %s" % (manifest["info"]["productDisplayVersion"]))
 
     if args.save_manifest:
@@ -449,29 +446,29 @@ def _downloadPayload(payload, destname, fileid, allowHashMismatch):
             if os.access(destname, os.F_OK):
                 if "sha256" in payload:
                     if sha256File(destname).lower() != payload["sha256"].lower():
-                        six.print_("Incorrect existing file %s, removing" % (fileid), flush=True)
+                        print("Incorrect existing file %s, removing" % (fileid), flush=True)
                         os.remove(destname)
                     else:
-                        six.print_("Using existing file %s" % (fileid), flush=True)
+                        print("Using existing file %s" % (fileid), flush=True)
                         return 0
                 else:
                     return 0
             size = 0
             if "size" in payload:
                 size = payload["size"]
-            six.print_("Downloading %s (%s)" % (fileid, formatSize(size)), flush=True)
-            six.moves.urllib.request.urlretrieve(payload["url"], destname)
+            print("Downloading %s (%s)" % (fileid, formatSize(size)), flush=True)
+            urllib.request.urlretrieve(payload["url"], destname)
             if "sha256" in payload:
                 if sha256File(destname).lower() != payload["sha256"].lower():
                     if allowHashMismatch:
-                        six.print_("WARNING: Incorrect hash for downloaded file %s" % (fileid), flush=True)
+                        print("WARNING: Incorrect hash for downloaded file %s" % (fileid), flush=True)
                     else:
                         raise Exception("Incorrect hash for downloaded file %s, aborting" % fileid)
             return size
         except Exception as e:
             if attempt == attempts - 1:
                 raise
-            six.print_("%s: %s" % (type(e).__name__, e), flush=True)
+            print("%s: %s" % (type(e).__name__, e), flush=True)
 
 def mergeTrees(src, dest):
     if not os.path.isdir(src):
@@ -499,7 +496,7 @@ def mergeTrees(src, dest):
 def unzipFiltered(zip, dest):
     tmp = os.path.join(dest, "extract")
     for f in zip.infolist():
-        name = six.moves.urllib.parse.unquote(f.filename)
+        name = urllib.parse.unquote(f.filename)
         if "/" in name:
             sep = name.rfind("/")
             dir = os.path.join(dest, name[0:sep])
@@ -637,9 +634,9 @@ if __name__ == "__main__":
         sys.exit(0)
 
     if not args.accept_license:
-        response = six.moves.input("Do you accept the license at " + findPackage(packages, "Microsoft.VisualStudio.Product.BuildTools", None)["localizedResources"][0]["license"] + " (yes/no)? ")
+        response = input("Do you accept the license at " + findPackage(packages, "Microsoft.VisualStudio.Product.BuildTools", None)["localizedResources"][0]["license"] + " (yes/no)? ")
         while response != "yes" and response != "no":
-            response = six.moves.input("Do you accept the license? Answer \"yes\" or \"no\": ")
+            response = input("Do you accept the license? Answer \"yes\" or \"no\": ")
         if response == "no":
             sys.exit(0)
 
