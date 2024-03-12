@@ -45,6 +45,11 @@ while [ $# -gt 0 ]; do
 			a=${opt}z:$path
 		fi
 		;;
+	@*CMakeFiles*.rsp)
+		# Rewrite absolute paths in response files like /absolute/path into z:/absolute/path.
+		filepath=$(realpath "${a:1}")
+		sed -i -r 's@(^| |\n)(\/(([^\/ \n]+)\/+)+([^\/ \n]+))@Z:\2 @g' "$filepath"
+		;;
 	/*)
 		# Rewrite options like /absolute/path into z:/absolute/path.
 		# This is essential for disambiguating e.g. /home/user/file from the
