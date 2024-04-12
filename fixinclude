@@ -44,7 +44,7 @@ sub dodir($) {
       while(my $line = <FHIN>) {
         # Make sure to match '#include <foo>' or '#include "bar"', but not
         # '#include IDENTIFIER'.
-        if($line =~ m/^#\s*include\s+["<][\w\.\/\\]+[">]/) {
+        if($line =~ m/^\s*#\s*include\s+["<][\w\.\/\\]+[">]/) {
           my @values = split('//', $line);
           $values[0] =~ tr [A-Z\\] [a-z/];
 
