@@ -21,3 +21,7 @@
 // This includes MSVC STL headers, which strictly require a very recent
 // version of Clang.
 #include <comdef.h>
+
+// gdiplus.h has include statements that we previously didn't fix the
+// casing for.
+#include <gdiplus.h>
