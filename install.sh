@@ -164,6 +164,11 @@ fi
 MSVCVER=$(basename $(echo vc/tools/msvc/* | awk '{print $1}'))
 echo Using MSVC version $MSVCVER
 
+# Support `import std` for CMake.
+if [ -d "VC/Tools/MSVC/$MSVCVER/modules" ]; then
+    ln_s VC/Tools/MSVC/$MSVCVER/modules modules
+fi
+
 cat $ORIG/wrappers/msvcenv.sh \
 | sed 's/MSVCVER=.*/MSVCVER='$MSVCVER/ \
 | sed 's/SDKVER=.*/SDKVER='$SDKVER/ \
