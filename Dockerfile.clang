@@ -2,7 +2,7 @@ ARG BASE=msvc-wine
 FROM $BASE
 
 RUN apt-get update && \
-    apt-get install -y curl && \
+    apt-get install -y curl xz-utils && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
 
