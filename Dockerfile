@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 RUN apt-get update && \
-    apt-get install -y wine64-development python3 msitools ca-certificates && \
+    apt-get install -y wine64 python3 msitools ca-certificates && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
 

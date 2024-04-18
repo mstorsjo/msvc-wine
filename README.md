@@ -48,7 +48,7 @@ The following instructions are for setting up MSVC without docker.
 
 ```bash
 apt-get update
-apt-get install -y wine64-development python3 msitools ca-certificates winbind
+apt-get install -y wine64 python3 msitools ca-certificates winbind
 ```
 
 ## Installation
