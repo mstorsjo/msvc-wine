@@ -15,49 +15,42 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 MSVCTRICKS_EXE="$(dirname $0)/../msvctricks.exe"
-EXE="$1"
+EXE=$1
 shift
 
 ARGS=()
-while [ $# -gt 0 ]; do
-	a=$1
-	case $a in
+for a; do
+	path=
+	case "$a" in
 	[-/][A-Za-z]/*)
-		opt=${a:0:2}
-		path=${a:2}
+		path=${a#??}
 		# Rewrite options like -I/absolute/path into -Iz:/absolute/path.
 		# This is needed to avoid what seems like a cl.exe/Wine bug combination
 		# in some very rare cases, see https://bugs.winehq.org/show_bug.cgi?id=55200
 		# for details. In those rare cases, cl.exe fails to find includes in
 		# some directories specified with -I/absolute/path but does find them if
 		# they have been specified as -Iz:/absolute/path.
-		if [ -d "$(dirname "$path")" ] && [ "$(dirname "$path")" != "/" ]; then
-			a=${opt}z:$path
-		fi
 		;;
 	[-/][A-Za-z][A-Za-z]/*)
-		opt=${a:0:3}
-		path=${a:3}
+		path=${a#???}
 		# Rewrite options like -Fo/absolute/path into -Foz:/absolute/path.
 		# This doesn't seem to be strictly needed for any known case at the moment, but
 		# might have been needed with some version of MSVC or Wine earlier.
-		if [ -d "$(dirname "$path")" ] && [ "$(dirname "$path")" != "/" ]; then
-			a=${opt}z:$path
-		fi
 		;;
 	/*)
 		# Rewrite options like /absolute/path into z:/absolute/path.
 		# This is essential for disambiguating e.g. /home/user/file from the
 		# tool option /h with the value ome/user/file.
-		if [ -d "$(dirname "$a")" ] && [ "$(dirname "$a")" != "/" ]; then
-			a=z:$a
-		fi
+		path=$a
 		;;
 	*)
 		;;
 	esac
+	if [ -n "$path" ] && [ -d "$(dirname "$path")" ] && [ "$(dirname "$path")" != "/" ]; then
+		opt=${a%$path}
+		a=${opt}z:$path
+	fi
 	ARGS+=("$a")
-	shift
 done
 
 WINE=$(command -v wine64 || command -v wine || false)
