@@ -37,6 +37,10 @@ for a; do
 		# This doesn't seem to be strictly needed for any known case at the moment, but
 		# might have been needed with some version of MSVC or Wine earlier.
 		;;
+	[-/][A-Za-z][A-Za-z][A-Za-z]*:/*)
+		path=${a#*:}
+		# Rewrite options like -MANIFESTINPUT:/absolute/path into -MANIFESTINPUT:z:/absolute/path.
+		;;
 	/*)
 		# Rewrite options like /absolute/path into z:/absolute/path.
 		# This is essential for disambiguating e.g. /home/user/file from the
