@@ -43,7 +43,7 @@ ln_s() {
 if [ -n "$VC_ZIP" ]; then
     unzip $VC_ZIP
 fi
-ln_s kits "Windows Kits"
+ln_s "Windows Kits" kits
 ln_s VC vc
 ln_s Tools vc/tools
 ln_s MSVC vc/tools/msvc
