@@ -750,6 +750,10 @@ def moveVCSDK(unpack, dest):
         "DIA SDK",
         # MSBuild is the standard VC build tool.
         "MSBuild",
+        # This directory contains batch scripts to setup Developer Command Prompt.
+        # Environment variable VS170COMNTOOLS points to this directory, and some
+        # tools use it to locate VS installation root and MSVC toolchains.
+        os.path.join("Common7", "Tools"),
     ]
     for dir in filter(None, components):
         mergeTrees(os.path.join(unpack, dir), os.path.join(dest, dir))
