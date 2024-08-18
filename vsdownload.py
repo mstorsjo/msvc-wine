@@ -605,14 +605,12 @@ def moveVCSDK(unpack, dest):
     # Move the VC and Program Files\Windows Kits\10 directories
     # out from the unpack directory, allowing the rest of unpacked
     # files to be removed.
-    makedirs(os.path.join(dest, "kits"))
     mergeTrees(os.path.join(unpack, "VC"), os.path.join(dest, "VC"))
     kitsPath = unpack
     # msiexec extracts to Windows Kits rather than Program Files\Windows Kits
     if sys.platform != "win32":
         kitsPath = os.path.join(kitsPath, "Program Files")
-    kitsPath = os.path.join(kitsPath, "Windows Kits", "10")
-    mergeTrees(kitsPath, os.path.join(dest, "kits", "10"))
+    mergeTrees(os.path.join(kitsPath, "Windows Kits"), os.path.join(dest, "Windows Kits"))
 
     # Move other VC components directories:
     # The DIA SDK isn't necessary for normal use, but can be used when e.g.
