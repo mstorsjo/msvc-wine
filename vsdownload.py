@@ -21,6 +21,7 @@ import hashlib
 import os
 import multiprocessing.pool
 import json
+import platform
 import shutil
 import socket
 import subprocess
@@ -55,6 +56,7 @@ def getArgsParser():
     parser.add_argument("--msvc-version", metavar="version", help="Install a specific MSVC toolchain version")
     parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
+    parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
     return parser
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
@@ -217,14 +219,22 @@ def getManifest(args):
 
     return manifest
 
-def prioritizePackage(a, b):
-    if "chip" in a and "chip" in b:
-        ax64 = a["chip"].lower() == "x64"
-        bx64 = b["chip"].lower() == "x64"
-        if ax64 and not bx64:
+def prioritizePackage(arch, a, b):
+    def archOrd(k, x):
+        if arch is None:
+            return 0
+        c = x.get(k, "neutral").lower()
+        if c == "neutral":
+            return 0
+        if c == arch:
             return -1
-        elif bx64 and not ax64:
-            return 1
+        return 1
+    
+    for k in ["chip", "machineArch", "productArch"]:
+        r = archOrd(k, a) - archOrd(k, b)
+        if r != 0:
+            return r
+
     if "language" in a and "language" in b:
         aeng = a["language"].lower().startswith("en-")
         beng = b["language"].lower().startswith("en-")
@@ -234,7 +244,7 @@ def prioritizePackage(a, b):
             return 1
     return 0
 
-def getPackages(manifest):
+def getPackages(manifest, arch):
     packages = {}
     for p in manifest["packages"]:
         id = p["id"].lower()
@@ -242,7 +252,7 @@ def getPackages(manifest):
             packages[id] = []
         packages[id].append(p)
     for key in packages:
-        packages[key] = sorted(packages[key], key=functools.cmp_to_key(prioritizePackage))
+        packages[key] = sorted(packages[key], key=functools.cmp_to_key(functools.partial(prioritizePackage, arch)))
     return packages
 
 def listPackageType(packages, type):
@@ -640,7 +650,26 @@ if __name__ == "__main__":
 
     socket.setdefaulttimeout(15)
 
-    packages = getPackages(getManifest(args))
+    if args.host_arch is None:
+        args.host_arch = platform.machine().lower()
+        if platform.system() == "Darwin":
+            # There is no prebuilt arm64 Wine on macOS.
+            args.host_arch = "x64"
+        elif args.host_arch in ["x86", "i386", "i686"]:
+            args.host_arch = "x86"
+        elif args.host_arch in ["x64", "x86_64", "amd64"]:
+            args.host_arch = "x64"
+        elif args.host_arch in ["arm64", "aarch64"]:
+            args.host_arch = "arm64"
+        else:
+            args.host_arch = None
+
+    if args.host_arch is None:
+        print("WARNING: Unable to detect host architecture")
+    else:
+        print("Install packages for %s host architecture" % args.host_arch)
+
+    packages = getPackages(getManifest(args), args.host_arch)
 
     if args.print_version:
         sys.exit(0)
