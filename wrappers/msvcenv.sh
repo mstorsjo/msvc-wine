@@ -34,6 +34,7 @@ SDKLIB="$SDKBASE\\lib\\$SDKVER"
 BINDIR=$BASE_UNIX/vc/tools/msvc/$MSVCVER/bin/Hostx64/$ARCH
 SDKBINDIR=$BASE_UNIX/$SDK_UNIX/bin/$SDKVER/x64
 MSBUILDBINDIR=$BASE_UNIX/MSBuild/Current/Bin/amd64
+CMAKEDIR=$BASE_UNIX/Common7/IDE/CommonExtensions/Microsoft/CMake
 export INCLUDE="$MSVCDIR\\atlmfc\\include;$MSVCDIR\\include;$SDKINCLUDE\\shared;$SDKINCLUDE\\ucrt;$SDKINCLUDE\\um;$SDKINCLUDE\\winrt;$SDKINCLUDE\\km"
 export LIB="$MSVCDIR\\atlmfc\\lib\\$ARCH;$MSVCDIR\\lib\\$ARCH;$SDKLIB\\ucrt\\$ARCH;$SDKLIB\\um\\$ARCH;$SDKLIB\\km\\$ARCH"
 export LIBPATH="$LIB"
