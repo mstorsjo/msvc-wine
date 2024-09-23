@@ -55,6 +55,9 @@ def getArgsParser():
     parser.add_argument("--keep-unpack", const=True, action="store_const", help="Keep the unpacked files that aren't otherwise selected as needed output")
     parser.add_argument("--msvc-version", metavar="version", help="Install a specific MSVC toolchain version")
     parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
+    parser.add_argument("--architecture", metavar="arch", help="Target architecture to include (x86, x64, arm, arm64)", nargs="*")
+    parser.add_argument("--skip-atl", const=True, action="store_const", help="Skip installing the ATL headers")
+    parser.add_argument("--skip-diasdk", const=True, action="store_const", help="Skip installing the DIA SDK")
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
     parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
     parser.add_argument("--only-host", default=True, const=True, action="store_const", help="Only download packages that match host arch")
@@ -66,10 +69,13 @@ def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, def
             sdkpkg = "Win11SDK_" + sdk
         else:
             sdkpkg = "Win10SDK_" + sdk
-        extraarchs = ["ARM", "ARM64"]
-        args.package.extend([sdkpkg, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL"])
-        for arch in extraarchs:
-            args.package.extend(["Microsoft.VisualStudio.Component.VC." + toolversion + "." + arch, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL." + arch])
+        args.package.extend([sdkpkg, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64"])
+        if not args.skip_atl:
+            args.package.extend(["Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL"])
+        for arch in args.extraarchs:
+            args.package.extend(["Microsoft.VisualStudio.Component.VC." + toolversion + "." + arch])
+            if not args.skip_atl:
+                args.package.extend(["Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL." + arch])
     else:
         # Options for toolchains for specific versions. The latest version in
         # each manifest isn't available as a pinned version though, so if that
@@ -88,12 +94,24 @@ def setPackageSelectionMSVC15(args, packages, userversion, sdk, toolversion, def
         args.package.extend(defaultPackages)
 
 def setPackageSelection(args, packages):
+    if not args.architecture:
+        args.architecture = ["x86", "x64", "arm", "arm64"]
+    extraarchs = []
+    if "arm" in args.architecture:
+        extraarchs.extend(["ARM"])
+    if "arm64" in args.architecture:
+        extraarchs.extend(["ARM64"])
+    args.extraarchs = extraarchs
+
     # If no packages are selected, install these versionless packages, which
     # gives the latest/recommended version for the current manifest.
-    extraarchs = ["ARM", "ARM64"]
-    defaultPackages = ["Microsoft.VisualStudio.Workload.VCTools", "Microsoft.VisualStudio.Component.VC.ATL"]
+    defaultPackages = ["Microsoft.VisualStudio.Workload.VCTools"]
+    if not args.skip_atl:
+        defaultPackages.extend(["Microsoft.VisualStudio.Component.VC.ATL"])
     for arch in extraarchs:
-        defaultPackages.extend(["Microsoft.VisualStudio.Component.VC.Tools." + arch, "Microsoft.VisualStudio.Component.VC.ATL." + arch])
+        defaultPackages.extend(["Microsoft.VisualStudio.Component.VC.Tools." + arch])
+        if not args.skip_atl:
+            defaultPackages.extend(["Microsoft.VisualStudio.Component.VC.ATL." + arch])
 
     # Note, that in the manifest for MSVC version X.Y, only version X.Y-1
     # exists with a package name like "Microsoft.VisualStudio.Component.VC."
@@ -670,7 +688,10 @@ def moveVCSDK(unpack, dest):
     # The DIA SDK isn't necessary for normal use, but can be used when e.g.
     # compiling LLVM.
     # MSBuild is the standard VC build tool.
-    for extraDir in "DIA SDK", "MSBuild":
+    dirs = ["MSBuild"]
+    if not args.skip_diasdk:
+        dirs.extend(["DIA SDK"])
+    for extraDir in dirs:
         mergeTrees(os.path.join(unpack, extraDir), os.path.join(dest, extraDir))
 
 if __name__ == "__main__":
