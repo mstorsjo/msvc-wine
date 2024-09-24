@@ -21,6 +21,7 @@ import hashlib
 import os
 import multiprocessing.pool
 import json
+import platform
 import shutil
 import socket
 import subprocess
@@ -58,6 +59,7 @@ def getArgsParser():
     parser.add_argument("--skip-atl", const=True, action="store_const", help="Skip installing the ATL headers")
     parser.add_argument("--skip-diasdk", const=True, action="store_const", help="Skip installing the DIA SDK")
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
+    parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
     return parser
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
@@ -235,14 +237,25 @@ def getManifest(args):
 
     return manifest
 
-def prioritizePackage(a, b):
-    if "chip" in a and "chip" in b:
-        ax64 = a["chip"].lower() == "x64"
-        bx64 = b["chip"].lower() == "x64"
-        if ax64 and not bx64:
+def prioritizePackage(arch, a, b):
+    def archOrd(k, x):
+        if arch is None:
+            return 0
+        c = x.get(k)
+        if c is None:
+            return 0
+        c = c.lower()
+        if c == "neutral":
             return -1
-        elif bx64 and not ax64:
-            return 1
+        if c == arch:
+            return -2
+        return 1
+    
+    for k in ["chip", "machineArch", "productArch"]:
+        r = archOrd(k, a) - archOrd(k, b)
+        if r != 0:
+            return r
+
     if "language" in a and "language" in b:
         aeng = a["language"].lower().startswith("en-")
         beng = b["language"].lower().startswith("en-")
@@ -252,7 +265,7 @@ def prioritizePackage(a, b):
             return 1
     return 0
 
-def getPackages(manifest):
+def getPackages(manifest, arch):
     packages = {}
     for p in manifest["packages"]:
         id = p["id"].lower()
@@ -260,7 +273,7 @@ def getPackages(manifest):
             packages[id] = []
         packages[id].append(p)
     for key in packages:
-        packages[key] = sorted(packages[key], key=functools.cmp_to_key(prioritizePackage))
+        packages[key] = sorted(packages[key], key=functools.cmp_to_key(functools.partial(prioritizePackage, arch)))
     return packages
 
 def listPackageType(packages, type):
@@ -276,7 +289,7 @@ def listPackageType(packages, type):
     for id in sorted(ids):
         print(id)
 
-def findPackage(packages, id, chip, warn=True):
+def findPackage(packages, id, constraints, warn=True):
     origid = id
     id = id.lower()
     candidates = None
@@ -285,18 +298,25 @@ def findPackage(packages, id, chip, warn=True):
             print("WARNING: %s not found" % (origid))
         return None
     candidates = packages[id]
-    if chip != None:
-        chip = chip.lower()
-        for a in candidates:
-            if "chip" in a and a["chip"].lower() == chip:
-                return a
+    for a in candidates:
+        matched = True
+        for k, v in constraints.items():
+            if k in ["chip", "machineArch"]:
+                matched = a.get(k, "").lower() == v.lower()
+                if not matched:
+                    break
+        if matched:
+            return a
     return candidates[0]
 
-def printDepends(packages, target, deptype, chip, indent, args):
+def printDepends(packages, target, constraints, indent, args):
     chipstr = ""
-    if chip != None:
-        chipstr = " (" + chip + ")"
+    for k in ["chip", "machineArch"]:
+        v = constraints.get(k)
+        if v is not None:
+            chipstr = chipstr + " (" + k + "." + v + ")"
     deptypestr = ""
+    deptype = constraints.get("type", "")
     if deptype != "":
         deptypestr = " (" + deptype + ")"
     ignorestr = ""
@@ -304,27 +324,22 @@ def printDepends(packages, target, deptype, chip, indent, args):
     if target.lower() in args.ignore:
         ignorestr = " (Ignored)"
         ignore = True
-    print(indent + target + chipstr + deptypestr + ignorestr)
     if deptype == "Optional" and not args.include_optional:
-        return
+        ignore = True
     if deptype == "Recommended" and args.skip_recommended:
-        return
+        ignore = True
+    if not ignore:
+        p = findPackage(packages, target, constraints, False)
+        if p == None:
+            ignorestr = " (NotFound)"
+            ignore = True
+    print(indent + target + chipstr + deptypestr + ignorestr)
     if ignore:
         return
-    p = findPackage(packages, target, chip)
-    if p == None:
-        return
-    if "dependencies" in p:
-        deps = p["dependencies"]
-        for key in deps:
-            dep = deps[key]
-            type = ""
-            if "type" in dep:
-                type = dep["type"]
-            chip = None
-            if "chip" in dep:
-                chip = dep["chip"]
-            printDepends(packages, key, type, chip, indent + "  ", args)
+    for target, constraints in p.get("dependencies", {}).items():
+        if not isinstance(constraints, dict):
+            constraints = { "version": constraints }
+        printDepends(packages, target, constraints, indent + "  ", args)
 
 def printReverseDepends(packages, target, deptype, indent, args):
     deptypestr = ""
@@ -353,14 +368,16 @@ def getPackageKey(p):
     packagekey = p["id"]
     if "version" in p:
         packagekey = packagekey + "-" + p["version"]
-    if "chip" in p:
-        packagekey = packagekey + "-" + p["chip"]
+    for k in ["chip", "machineArch", "productArch"]:
+        v = p.get(k)
+        if v is not None:
+           packagekey = packagekey + "-" + k + "." + v
     return packagekey
 
-def aggregateDepends(packages, included, target, chip, args):
+def aggregateDepends(packages, included, target, constraints, args):
     if target.lower() in args.ignore:
         return []
-    p = findPackage(packages, target, chip)
+    p = findPackage(packages, target, constraints)
     if p == None:
         return []
     packagekey = getPackageKey(p)
@@ -368,27 +385,22 @@ def aggregateDepends(packages, included, target, chip, args):
         return []
     ret = [p]
     included[packagekey] = True
-    if "dependencies" in p:
-        deps = p["dependencies"]
-        for key in deps:
-            dep = deps[key]
-            if "type" in dep:
-                deptype = dep["type"]
-                if deptype == "Optional" and not args.include_optional:
-                    continue
-                if deptype == "Recommended" and args.skip_recommended:
-                    continue
-            chip = None
-            if "chip" in dep:
-                chip = dep["chip"]
-            ret.extend(aggregateDepends(packages, included, key, chip, args))
+    for target, constraints in p.get("dependencies", {}).items():
+        if not isinstance(constraints, dict):
+            constraints = { "version": constraints }
+        deptype = constraints.get("type")
+        if deptype == "Optional" and not args.include_optional:
+            continue
+        if deptype == "Recommended" and args.skip_recommended:
+            continue
+        ret.extend(aggregateDepends(packages, included, target, constraints, args))
     return ret
 
 def getSelectedPackages(packages, args):
     ret = []
     included = {}
     for i in args.package:
-        ret.extend(aggregateDepends(packages, included, i, None, args))
+        ret.extend(aggregateDepends(packages, included, i, {}, args))
     return ret
 
 def sumInstalledSize(l):
@@ -423,8 +435,10 @@ def printPackageList(l):
         s = p["id"]
         if "type" in p:
             s = s + " (" + p["type"] + ")"
-        if "chip" in p:
-            s = s + " (" + p["chip"] + ")"
+        for k in ["chip", "machineArch", "productArch"]:
+            v = p.get(k)
+            if v is not None:
+                s = s + " (" + k + "." + v + ")"
         if "language" in p:
             s = s + " (" + p["language"] + ")"
         s = s + " " + formatSize(sumInstalledSize([p]))
@@ -661,7 +675,25 @@ if __name__ == "__main__":
 
     socket.setdefaulttimeout(15)
 
-    packages = getPackages(getManifest(args))
+    if args.host_arch is None:
+        args.host_arch = platform.machine().lower()
+        if platform.system() == 'Darwin':
+            args.host_arch = 'x64'
+        elif args.host_arch in [ 'x86', 'i386', 'i686' ]:
+            args.host_arch = 'x86'
+        elif args.host_arch in [ 'x64', 'x86_64', 'amd64' ]:
+            args.host_arch = 'x64'
+        elif args.host_arch in [ 'arm64', 'aarch64' ]:
+            args.host_arch = 'arm64'
+        else:
+            args.host_arch = None
+
+    if args.host_arch is None:
+        print("WARNING: Unable to detect host architecture")
+    else:
+        print("Install packages for %s host architecture" % args.host_arch)
+
+    packages = getPackages(getManifest(args), args.host_arch)
 
     if args.print_version:
         sys.exit(0)
@@ -686,7 +718,7 @@ if __name__ == "__main__":
 
     if args.print_deps_tree:
         for i in args.package:
-            printDepends(packages, i, "", None, "", args)
+            printDepends(packages, i, {}, "", args)
         sys.exit(0)
 
     if args.print_reverse_deps:
