@@ -516,7 +516,7 @@ def unzipFiltered(zip, dest):
 def unpackVsix(file, dest, listing):
     temp = os.path.join(dest, "vsix")
     makedirs(temp)
-    with zipfile.ZipFile(file, 'r') as zip:
+    with zipfile.ZipFile(file, "r") as zip:
         unzipFiltered(zip, temp)
         with open(listing, "w") as f:
             for n in zip.namelist():
@@ -578,7 +578,7 @@ def unpackWin10WDK(src, dest):
     kitsPath = os.path.join(dest, "Program Files", "Windows Kits", "10")
     brokenBuildDir = os.path.join(kitsPath, "Build")
     for buildDir in glob.glob(kitsPath + "/build/10.*/"):
-        wdkVersion = buildDir.split('/')[-2];
+        wdkVersion = buildDir.split("/")[-2];
         print("Merging WDK 'Build' and 'build' directories into version", wdkVersion);
         mergeTrees(brokenBuildDir, buildDir)
     shutil.rmtree(brokenBuildDir)
