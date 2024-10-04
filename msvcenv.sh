@@ -55,7 +55,7 @@ SDK=kits/10
 # Use bash ararry as much as possible as it
 # allows for easier conversion to windows paths.
 
-BINDIR="$BASE/bin"
+BINDIR="$BASE/bin/$ARCH"
 
 MSVCBASE="$BASE/vc"
 MSVC="$MSVCBASE/tools/msvc/$MSVCVER"
@@ -89,7 +89,7 @@ export INCLUDE_WINE_UNIX="${_INCLUDES[@]}"
 # {// / /\\\\}
 #  ^^   tells bash to replace
 #     ^ replace with \\\\
-_TEMP1=(${_INCLUDES[@]////\\\\})
+_TEMP1=("${_INCLUDES[@]//\//\\\\}")
 # {/#/z:}
 #  ^^    select start of variable
 #     ^^ repace with z:
@@ -98,27 +98,26 @@ _TEMP1=(${_TEMP1[@]/#/z:})
 IFS=";"
 export INCLUDE="${_TEMP1[*]}"
 unset IFS
-_TEMP1=(${_LIBS[@]////\\\\})
+_TEMP1=(${_LIBS[@]//\//\\\\})
 _TEMP1=(${_TEMP1[@]/#/z:})
 IFS=";"
 export LIB="${_TEMP1[*]}"
 unset IFS
 export LIBPATH="$LIB"
-export PATH=$(
-  ARR=($BINDIR $MSBUILD_BINDIR $MSVC_BINDIR $SDK_BINDIR $PATH)
-  IFS=':'
-  echo "${ARR[*]}"
-)
+_PATH=($BINDIR $MSBUILD_BINDIR $MSVC_BINDIR $SDK_BINDIR $PATH)
+IFS=":"
+export PATH="${_PATH[*]}"
+unset IFS
 # "$MSVCDIR\\bin\\Hostx64\\x64" is included in PATH for DLLs.
 
 # Keep as array until the very end.
-export WINEPATH=$(
-  ARR=($MSBUILD_BINDIR $MSVC_BINDIR $SDK_BINDIR)
-  _TEMP=(${ARR[@]/#/z:})
-  _TEMP=(${_TEMP[@]////\\\\})
-  IFS=';'
-  echo "${_TEMP[*]}"
-)
+_WINEPATH=($MSBUILD_BINDIR $MSVC_BINDIR $SDK_BINDIR)
+_TEMP=(${_WINEPATH[@]//\//\\\\})
+_TEMP=(${_TEMP[@]/#/z:})
+IFS=';'
+export WINEPATH="${_TEMP[*]}"
+unset IFS
+
 export WINEDLLOVERRIDES="vcruntime140=n;vcruntime140_1=n"
 
 # this is used to run applications throught scripts,
