@@ -57,6 +57,7 @@ def getArgsParser():
     parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
     parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
+    parser.add_argument("--only-host", default=True, const=True, action="store_const", help="Only download packages that match host arch")
     return parser
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
@@ -288,6 +289,22 @@ def findPackage(packages, id, constraints={}, warn=True):
             return a
     return candidates[0]
 
+def matchPackageHostArch(p, host):
+    if host is None:
+        return True
+
+    known_archs = ["x86", "x64", "arm64"]
+
+    # Some packages have host arch in their ids, e.g.
+    # - Microsoft.VisualCpp.Tools.HostARM64.TargetX64
+    # - Microsoft.VisualCpp.Tools.HostX64.TargetX64
+    id = p["id"].lower()
+    for a in known_archs:
+        if "host" + a in id:
+            return a == host
+
+    return True
+
 def printDepends(packages, target, constraints, indent, args):
     chipstr = ""
     for k in ["chip", "machineArch"]:
@@ -311,6 +328,9 @@ def printDepends(packages, target, constraints, indent, args):
         p = findPackage(packages, target, constraints, warn=False)
         if p == None:
             ignorestr = " (NotFound)"
+            ignore = True
+        elif args.only_host and not matchPackageHostArch(p, args.host_arch):
+            ignorestr = " (HostArchMismatch)"
             ignore = True
     print(indent + target + chipstr + deptypestr + ignorestr)
     if ignore:
@@ -358,6 +378,8 @@ def aggregateDepends(packages, included, target, constraints, args):
         return []
     p = findPackage(packages, target, constraints)
     if p == None:
+        return []
+    if args.only_host and not matchPackageHostArch(p, args.host_arch):
         return []
     packagekey = getPackageKey(p)
     if packagekey in included:
