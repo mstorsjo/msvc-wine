@@ -303,6 +303,13 @@ def matchPackageHostArch(p, host):
         if "host" + a in id:
             return a == host
 
+    for k in ["chip", "machineArch", "productArch"]:
+        a = p.get(k, "neutral").lower()
+        if a == "neutral":
+            continue
+        if a != host:
+            return False
+
     return True
 
 def printDepends(packages, target, constraints, indent, args):
