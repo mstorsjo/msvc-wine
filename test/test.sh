@@ -100,6 +100,14 @@ for arch in x86 x64 arm arm64; do
     EXEC "" BIN=$BIN ./test-cmake.sh
     EXEC "" BIN=$BIN ./test-meson.sh
 
+    # Github runners define VCPKG_INSTALLATION_ROOT.
+    if [[ -z "$VCPKG_ROOT" && -n "$VCPKG_INSTALLATION_ROOT" ]]; then
+        export VCPKG_ROOT=$VCPKG_INSTALLATION_ROOT
+    fi
+    if [[ -n "$VCPKG_ROOT" ]]; then
+        EXEC "" BIN=$BIN ./test-vcpkg.sh
+    fi
+
     # MSBuild requires .NET framework v4.x or Mono to run.
     # Wine will search for Wine Mono in the following places:
     # See https://wiki.winehq.org/Mono#Shared_Install
