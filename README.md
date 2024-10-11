@@ -183,6 +183,26 @@ Other generators are untested and may or may not work. Use it at your own peril.
 
 No. Using Ninja or GNU Make directly should work.
 
+## How to integrate with vcpkg?
+
+You need define your own triplets, e.g. `my-triplets/x64-windows.cmake`:
+```cmake
+set(VCPKG_TARGET_ARCHITECTURE x64)
+set(VCPKG_CRT_LINKAGE dynamic)
+set(VCPKG_LIBRARY_LINKAGE dynamic)
+set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${VCPKG_ROOT_DIR}/scripts/toolchains/windows.cmake)
+
+set(ENV{CC} cl.exe)
+set(ENV{CXX} cl.exe)
+set(ENV{PATH} "/opt/msvc/bin/x64:$ENV{PATH}")
+```
+
+Then you can install packages using overlay triplets:
+```bash
+vcpkg install sqlite3:x64-windows --overlay-triplets=my-triplets
+```
+See examples [here](test/test-vcpkg.sh).
+
 ## I get `ninja: error: build.ninja:225: bad $-escape (literal $ must be written as $$)`
 
 Visual Studio can switch between Debug/Release/RelWithDebInfo/etc at build time in the IDE.
