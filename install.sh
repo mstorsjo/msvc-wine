@@ -186,6 +186,15 @@ for arch in x86 x64 arm arm64; do
 done
 rm msvcenv.sh
 
+mkdir -p share/cmake
+sed "s,@RELPATH@,../..,g" $ORIG/cmake/msvc-wine_toolchainfile.cmake.in > share/cmake/msvc-wine_toolchainfile.cmake
+
+templ=$ORIG/cmake/msvc-wine_toolchainfile_arch.cmake.in
+sed "s,@ARCH@,AMD64,g" $templ > share/cmake/msvc-wine_x64_toolchainfile.cmake
+sed "s,@ARCH@,x86,g" $templ > share/cmake/msvc-wine_x86_toolchainfile.cmake
+sed "s,@ARCH@,ARM64,g" $templ > share/cmake/msvc-wine_arm64_toolchainfile.cmake
+sed "s,@ARCH@,ARM,g" $templ > share/cmake/msvc-wine_arm_toolchainfile.cmake
+
 if [ -d "$DEST/bin/$host" ]; then
     if WINE="$(command -v wine64 || command -v wine)"; then
         WINEDEBUG=-all ${WINE} wineboot &>/dev/null
