@@ -589,7 +589,8 @@ def unpackWin10SDK(src, payloads, dest):
             print("Extracting " + name)
             srcfile = os.path.join(src, name)
             if sys.platform == "win32":
-                cmd = ["msiexec", "/a", srcfile, "/qn", "TARGETDIR=" + os.path.abspath(dest)]
+                # The path to TARGETDIR need to be quoted in the case of spaces.
+                cmd = "msiexec /a \"%s\" /qn TARGETDIR=\"%s\"" % (srcfile, os.path.abspath(dest))
             else:
                 cmd = ["msiextract", "-C", dest, srcfile]
             with open(os.path.join(dest, "WinSDK-" + getPayloadName(payload) + "-listing.txt"), "w") as log:
