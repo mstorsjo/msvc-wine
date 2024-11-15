@@ -55,6 +55,8 @@ export SignMode=off
 export Inf2CatNoCatalog=true
 # API Validator crashes in WINE.
 export ApiValidator_Enable=False
+# Make sure the custom INCLUDE/LIB variables work.
+export UseEnv=true
 
 # Set MSBuild-specific Platform property via an environment variable.
 # 'Platform' property names do not match ARCH names exactly.
