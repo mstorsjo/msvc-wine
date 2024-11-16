@@ -34,7 +34,18 @@ export DisableRegistryUse=true
 export VCToolsVersion="$MSVCVER"
 export VCInstallDir_170="${MSVCBASE}\\"
 export VCToolsInstallDir_170="${MSVCDIR}\\"
+
 export MicrosoftKitRoot="${BASE}\\"
+export SDKReferenceDirectoryRoot="$MicrosoftKitRoot"
+export SDKExtensionDirectoryRoot="$MicrosoftKitRoot"
+
+# These environment variables are used by the native API
+# `[Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion()`.
+# See https://learn.microsoft.com/en-us/dotnet/api/microsoft.build.utilities.toollocationhelper.getlatestsdktargetplatformversion?view=msbuild-17-netcore
+export MSBUILDSDKREFERENCEDIRECTORY="$MicrosoftKitRoot"
+export MSBUILDMULTIPLATFORMSDKREFERENCEDIRECTORY="$MicrosoftKitRoot"
+
+# Set these manually because the above kit search does not always work.
 export WindowsSdkDir_10="${SDKBASE}\\"
 export UniversalCRTSdkDir_10="$WindowsSdkDir_10"
 export WindowsSdkDir="$WindowsSdkDir_10"
