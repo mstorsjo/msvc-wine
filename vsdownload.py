@@ -640,6 +640,9 @@ def unpackWin10WDK(src, dest):
 
 def extractPackages(selected, cache, dest):
     makedirs(dest)
+    # The path name casing is not consistent across packages, or even within a single package.
+    # Manually create top-level folders before extracting packages to ensure the desired casing.
+    makedirs(os.path.join(dest, "MSBuild"))
     for p in selected:
         type = p["type"]
         dir = os.path.join(cache, getPackageKey(p))
