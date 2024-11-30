@@ -81,6 +81,7 @@ def getArgsParser():
     parser.add_argument("--keep-unpack", const=True, action="store_const", help="Keep the unpacked files that aren't otherwise selected as needed output")
     parser.add_argument("--msvc-version", metavar="version", help="Install a specific MSVC toolchain version")
     parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
+    parser.add_argument("--architecture", metavar="arch", choices=["host", "x86", "x64", "arm", "arm64"], help="Target architectures to include (defaults to all)", nargs="+")
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
     parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
     parser.add_argument("--only-host", default=True, action=OptionalBoolean, help="Only download packages that match host arch")
@@ -88,14 +89,22 @@ def getArgsParser():
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
     if findPackage(packages, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", warn=False):
+        if "x86" in args.architecture or "x64" in args.architecture:
+            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64")
+            args.package.append("Microsoft.VC." + toolversion + ".ASAN.X86")
+            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL")
+        if "arm" in args.architecture:
+            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM")
+            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM")
+        if "arm64" in args.architecture:
+            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM64")
+            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM64")
+
         if sdk.startswith("10.0.") and int(sdk[5:]) >= 22000:
             sdkpkg = "Win11SDK_" + sdk
         else:
             sdkpkg = "Win10SDK_" + sdk
-        extraarchs = ["ARM", "ARM64"]
-        args.package.extend([sdkpkg, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", "Microsoft.VC." + toolversion + ".ASAN.X86", "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL"])
-        for arch in extraarchs:
-            args.package.extend(["Microsoft.VisualStudio.Component.VC." + toolversion + "." + arch, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL." + arch])
+        args.package.append(sdkpkg)
     else:
         # Options for toolchains for specific versions. The latest version in
         # each manifest isn't available as a pinned version though, so if that
@@ -114,12 +123,22 @@ def setPackageSelectionMSVC15(args, packages, userversion, sdk, toolversion, def
         args.package.extend(defaultPackages)
 
 def setPackageSelection(args, packages):
+    if not args.architecture:
+        args.architecture = ["host", "x86", "x64", "arm", "arm64"]
+    if args.host_arch is not None and "host" in args.architecture:
+        args.architecture.append(args.host_arch)
+
     # If no packages are selected, install these versionless packages, which
     # gives the latest/recommended version for the current manifest.
-    extraarchs = ["ARM", "ARM64"]
-    defaultPackages = ["Microsoft.VisualStudio.Workload.VCTools", "Microsoft.VisualStudio.Component.VC.ATL"]
-    for arch in extraarchs:
-        defaultPackages.extend(["Microsoft.VisualStudio.Component.VC.Tools." + arch, "Microsoft.VisualStudio.Component.VC.ATL." + arch])
+    defaultPackages = ["Microsoft.VisualStudio.Workload.VCTools"]
+    if "x86" in args.architecture or "x64" in args.architecture:
+        defaultPackages.append("Microsoft.VisualStudio.Component.VC.ATL")
+    if "arm" in args.architecture:
+        defaultPackages.append("Microsoft.VisualStudio.Component.VC.Tools.ARM")
+        defaultPackages.append("Microsoft.VisualStudio.Component.VC.ATL.ARM")
+    if "arm64" in args.architecture:
+        defaultPackages.append("Microsoft.VisualStudio.Component.VC.Tools.ARM64")
+        defaultPackages.append("Microsoft.VisualStudio.Component.VC.ATL.ARM64")
 
     # Note, that in the manifest for MSVC version X.Y, only version X.Y-1
     # exists with a package name like "Microsoft.VisualStudio.Component.VC."
