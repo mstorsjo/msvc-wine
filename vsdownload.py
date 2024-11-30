@@ -345,6 +345,7 @@ def printDepends(packages, target, constraints, indent, args):
     for target, constraints in p.get("dependencies", {}).items():
         if not isinstance(constraints, dict):
             constraints = { "version": constraints }
+        target = constraints.get("id", target)
         printDepends(packages, target, constraints, indent + "  ", args)
 
 def printReverseDepends(packages, target, deptype, indent, args):
@@ -396,6 +397,7 @@ def aggregateDepends(packages, included, target, constraints, args):
     for target, constraints in p.get("dependencies", {}).items():
         if not isinstance(constraints, dict):
             constraints = { "version": constraints }
+        target = constraints.get("id", target)
         deptype = constraints.get("type")
         if deptype == "Optional" and not args.include_optional:
             continue
