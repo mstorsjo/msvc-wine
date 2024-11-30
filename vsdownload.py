@@ -67,7 +67,7 @@ def getArgsParser():
     parser.add_argument("--cache", metavar="dir", help="Directory to use as a persistent cache for downloaded files")
     parser.add_argument("--dest", metavar="dir", help="Directory to install into")
     parser.add_argument("package", metavar="package", help="Package to install. If omitted, installs the default command line tools.", nargs="*")
-    parser.add_argument("--ignore", metavar="component", help="Package to skip", action="append")
+    parser.add_argument("--ignore", metavar="component", help="Package to skip", default=[], action="append")
     parser.add_argument("--accept-license", const=True, action="store_const", help="Don't prompt for accepting the license")
     parser.add_argument("--print-version", const=True, action="store_const", help="Stop after fetching the manifest")
     parser.add_argument("--list-workloads", const=True, action="store_const", help="List high level workloads")
@@ -84,24 +84,39 @@ def getArgsParser():
     parser.add_argument("--msvc-version", metavar="version", help="Install a specific MSVC toolchain version")
     parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
     parser.add_argument("--architecture", metavar="arch", choices=["host", "x86", "x64", "arm", "arm64"], help="Target architectures to include (defaults to all)", nargs="+")
+    parser.add_argument("--with-default", action=OptionalBoolean, help="Include default packages, true if no package specified")
+    parser.add_argument("--with-workload", action=OptionalBoolean, help="Include VC tools workload (default)")
+    parser.add_argument("--with-msvc", action=OptionalBoolean, help="Include MSVC build tools (default)")
+    parser.add_argument("--with-asan", action=OptionalBoolean, help="Include ASAN runtime (default)")
+    parser.add_argument("--with-sdk", action=OptionalBoolean, help="Include Windows SDK (default)")
+    parser.add_argument("--with-atl", action=OptionalBoolean, help="Include ATL (default)")
+    parser.add_argument("--with-dia", action=OptionalBoolean, help="Include DIA SDK (default)")
+    parser.add_argument("--with-msbuild", action=OptionalBoolean, help="Include MSBuild (default)")
+    parser.add_argument("--with-devcmd", action=OptionalBoolean, help="Include Visual Studio Developer Command Prompt (default)")
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
     parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
     parser.add_argument("--only-host", default=True, action=OptionalBoolean, help="Only download packages that match host arch")
     parser.add_argument("--skip-patch", action="store_true", help="Don't patch downloaded packages")
     return parser
 
-def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
+def appendPackageSelection(args, flag, package):
+    if flag == True:
+        args.package.append(package)
+    elif flag == False:
+        args.ignore.append(package)
+
+def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages, defaultIgnores):
     if findPackage(packages, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", warn=False):
         if "x86" in args.architecture or "x64" in args.architecture:
-            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64")
-            args.package.append("Microsoft.VC." + toolversion + ".ASAN.X86")
-            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL")
+            appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64")
+            appendPackageSelection(args, args.with_asan, "Microsoft.VC." + toolversion + ".ASAN.X86")
+            appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL")
         if "arm" in args.architecture:
-            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM")
-            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM")
+            appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM")
+            appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM")
         if "arm64" in args.architecture:
-            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM64")
-            args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM64")
+            appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM64")
+            appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM64")
 
         if args.sdk_version == None:
             args.sdk_version = sdk
@@ -111,16 +126,20 @@ def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, def
         # version is requested, try the default version.
         print("Didn't find exact version packages for " + userversion + ", assuming this is provided by the default/latest version")
         args.package.extend(defaultPackages)
+        args.ignore.extend(defaultIgnores)
 
-def setPackageSelectionMSVC15(args, packages, userversion, sdk, toolversion, defaultPackages):
+def setPackageSelectionMSVC15(args, packages, userversion, sdk, toolversion, defaultPackages, defaultIgnores):
     if findPackage(packages, "Microsoft.VisualStudio.Component.VC.Tools." + toolversion, warn=False):
-        args.package.extend(["Win10SDK_" + sdk, "Microsoft.VisualStudio.Component.VC.Tools." + toolversion])
+        appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC.Tools." + toolversion)
+        if args.sdk_version == None:
+            args.sdk_version = sdk
     else:
         # Options for toolchains for specific versions. The latest version in
         # each manifest isn't available as a pinned version though, so if that
         # version is requested, try the default version.
         print("Didn't find exact version packages for " + userversion + ", assuming this is provided by the default/latest version")
         args.package.extend(defaultPackages)
+        args.ignore.extend(defaultIgnores)
 
 def setPackageSelection(args, packages):
     if not args.architecture:
@@ -128,100 +147,155 @@ def setPackageSelection(args, packages):
     if args.host_arch is not None and "host" in args.architecture:
         args.architecture.append(args.host_arch)
 
+    # Select default packages.
+    if args.msvc_version is not None:
+        if args.with_msvc is None:
+            args.with_msvc = True
+        if args.with_asan is None:
+            args.with_asan = True
+        if args.with_atl is None:
+            args.with_atl = True
+        if args.with_sdk is None:
+            args.with_sdk = True
+    if args.sdk_version is not None:
+        if args.with_sdk is None:
+            args.with_sdk = True
+
+    if args.with_default is None:
+        if args.msvc_version is None and len(args.package) == 0:
+            args.with_default = True
+
+    if args.with_default is not None:
+        for component in ["workload", "msvc", "asan", "sdk", "atl", "dia", "msbuild", "devcmd"]:
+            if getattr(args, "with_" + component) is None:
+                setattr(args, "with_" + component, args.with_default)
+
     # If no packages are selected, install these versionless packages, which
     # gives the latest/recommended version for the current manifest.
-    defaultPackages = ["Microsoft.VisualStudio.Workload.VCTools"]
+    defaultPackages, args.package = args.package, []
+    defaultIgnores, args.ignore = args.ignore, []
+
+    appendPackageSelection(args, args.with_workload, "Microsoft.VisualStudio.Workload.VCTools")
+
     if "x86" in args.architecture or "x64" in args.architecture:
-        defaultPackages.append("Microsoft.VisualStudio.Component.VC.ATL")
+        appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC.Tools.x86.x64")
+        appendPackageSelection(args, args.with_asan, "Microsoft.VisualCpp.ASAN.X86")
+        appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC.ATL")
     if "arm" in args.architecture:
-        defaultPackages.append("Microsoft.VisualStudio.Component.VC.Tools.ARM")
-        defaultPackages.append("Microsoft.VisualStudio.Component.VC.ATL.ARM")
+        appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC.Tools.ARM")
+        appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC.ATL.ARM")
     if "arm64" in args.architecture:
-        defaultPackages.append("Microsoft.VisualStudio.Component.VC.Tools.ARM64")
-        defaultPackages.append("Microsoft.VisualStudio.Component.VC.ATL.ARM64")
+        appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC.Tools.ARM64")
+        appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC.ATL.ARM64")
+
+    defaultPackages, args.package = args.package, defaultPackages
+    defaultIgnores, args.ignore = args.ignore, defaultIgnores
 
     # Note, that in the manifest for MSVC version X.Y, only version X.Y-1
     # exists with a package name like "Microsoft.VisualStudio.Component.VC."
     # + toolversion + ".x86.x64".
-    if args.msvc_version == "16.0":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.17763", "14.20", defaultPackages)
+    if args.msvc_version is None:
+        args.package.extend(defaultPackages)
+        args.ignore.extend(defaultIgnores)
+    elif args.msvc_version == "16.0":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.17763", "14.20", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.1":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.21", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.21", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.2":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.22", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.22", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.3":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.23", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.23", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.4":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.24", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.24", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.5":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.25", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.25", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.6":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.26", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.26", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.7":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.27", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.27", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.8":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.28", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.18362", "14.28", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.9":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.28.16.9", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.28.16.9", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.10":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.29.16.10", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.29.16.10", defaultPackages, defaultIgnores)
     elif args.msvc_version == "16.11":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.29.16.11", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.29.16.11", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.0":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.30.17.0", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.30.17.0", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.1":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.31.17.1", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.31.17.1", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.2":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.32.17.2", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.32.17.2", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.3":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.33.17.3", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.19041", "14.33.17.3", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.4":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.34.17.4", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.34.17.4", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.5":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.35.17.5", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.35.17.5", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.6":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.36.17.6", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.36.17.6", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.7":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.37.17.7", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.37.17.7", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.8":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.38.17.8", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.38.17.8", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.9":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.39.17.9", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.39.17.9", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.10":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.40.17.10", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.40.17.10", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.11":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.41.17.11", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.41.17.11", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.12":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.42.17.12", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.42.17.12", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.13":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.43.17.13", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.43.17.13", defaultPackages, defaultIgnores)
     elif args.msvc_version == "17.14":
-        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.26100", "14.44.17.14", defaultPackages)
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.26100", "14.44.17.14", defaultPackages, defaultIgnores)
 
     elif args.msvc_version == "15.4":
-        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.11", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.11", defaultPackages, defaultIgnores)
     elif args.msvc_version == "15.5":
-        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.12", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.12", defaultPackages, defaultIgnores)
     elif args.msvc_version == "15.6":
-        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.13", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.13", defaultPackages, defaultIgnores)
     elif args.msvc_version == "15.7":
-        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.17134", "14.14", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.17134", "14.14", defaultPackages, defaultIgnores)
     elif args.msvc_version == "15.8":
-        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.17134", "14.15", defaultPackages)
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.17134", "14.15", defaultPackages, defaultIgnores)
     elif args.msvc_version == "15.9":
-        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.17763", "14.16", defaultPackages)
-    elif args.msvc_version != None:
+        setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.17763", "14.16", defaultPackages, defaultIgnores)
+    else:
         print("Unsupported MSVC toolchain version " + args.msvc_version)
         sys.exit(1)
 
-    if len(args.package) == 0:
-        args.package = defaultPackages
+    if args.with_sdk and args.sdk_version is None:
+        # get recommended SDKs from the manifest
+        package = args.package
+        include_optional = args.include_optional
+        skip_recommended = args.skip_recommended
+        
+        args.package = ["Microsoft.VisualStudio.Workload.VCTools"]
+        args.include_optional = False
+        args.skip_recommended = False
+        
+        recommended = getSelectedPackages(packages, args)
+        
+        args.package = package
+        args.include_optional = include_optional
+        args.skip_recommended = skip_recommended
 
-    if args.sdk_version != None:
-        found = False
+        for p in recommended:
+            key = p["id"].lower()
+            if key.startswith("win10sdk") or key.startswith("win11sdk"):
+                args.package.append(key)
+    elif args.with_sdk is not None:
+        found = not args.with_sdk
         versions = []
         for key in packages:
             if key.startswith("win10sdk") or key.startswith("win11sdk"):
+                if not args.with_sdk:
+                    args.ignore.append(key)
+                    continue
                 base = key[0:8]
                 version = key[9:]
                 if re.match(r'\d+\.\d+\.\d+', version):
@@ -238,6 +312,12 @@ def setPackageSelection(args, packages):
             for v in sorted(versions):
                 print("    " + v)
             sys.exit(1)
+
+    appendPackageSelection(args, args.with_dia, "Microsoft.VisualCpp.DIA.SDK")
+    appendPackageSelection(args, args.with_msbuild, "Microsoft.Build")
+    appendPackageSelection(args, args.with_msbuild, "Microsoft.Build.Dependencies")
+    appendPackageSelection(args, args.with_devcmd, "Microsoft.VisualStudio.VC.vcvars")
+    appendPackageSelection(args, args.with_devcmd, "Microsoft.VisualStudio.PackageGroup.VsDevCmd")
 
     if args.with_wdk_installers is not None:
         args.package.append("Component.Microsoft.Windows.DriverKit.BuildTools")
@@ -789,7 +869,6 @@ def moveVCSDK(unpack, dest):
 if __name__ == "__main__":
     parser = getArgsParser()
     args = parser.parse_args()
-    lowercaseIgnores(args)
 
     socket.setdefaulttimeout(15)
 
@@ -824,8 +903,6 @@ if __name__ == "__main__":
         if response == "no":
             sys.exit(0)
 
-    setPackageSelection(args, packages)
-
     if args.list_components or args.list_workloads or args.list_packages:
         if args.list_components:
             listPackageType(packages, "Component")
@@ -834,6 +911,9 @@ if __name__ == "__main__":
         if args.list_packages:
             listPackageType(packages, None)
         sys.exit(0)
+
+    setPackageSelection(args, packages)
+    lowercaseIgnores(args)
 
     if args.print_deps_tree:
         for i in args.package:
