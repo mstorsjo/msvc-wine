@@ -31,6 +31,32 @@ import urllib.request
 import zipfile
 
 def getArgsParser():
+    class OptionalBoolean(argparse.Action):
+        def __init__(self,
+                    option_strings,
+                    dest,
+                    default=None,
+                    help=None):
+            
+            if default is not None:
+                default_string = "yes" if default else "no"
+                if help is None:
+                    help = "default: " + default_string
+                else:
+                    help += " (default: %s)" % default_string
+
+            super().__init__(
+                option_strings=option_strings,
+                dest=dest,
+                nargs='?',
+                default=default,
+                choices=["yes", "no"],
+                help=help,
+                metavar="yes|no")
+
+        def __call__(self, parser, namespace, values, option_string=None):
+            setattr(namespace, self.dest, values != "no")
+
     parser = argparse.ArgumentParser(description = "Download and install Visual Studio")
     parser.add_argument("--manifest", metavar="manifest", help="A predownloaded manifest file")
     parser.add_argument("--save-manifest", const=True, action="store_const", help="Store the downloaded manifest to a file")
@@ -57,7 +83,7 @@ def getArgsParser():
     parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
     parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
-    parser.add_argument("--only-host", default=True, const=True, action="store_const", help="Only download packages that match host arch")
+    parser.add_argument("--only-host", default=True, action=OptionalBoolean, help="Only download packages that match host arch")
     return parser
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
