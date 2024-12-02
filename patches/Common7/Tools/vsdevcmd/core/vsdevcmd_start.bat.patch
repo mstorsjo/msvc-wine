@@ -1,0 +1,28 @@
+#
+# Copyright (c) 2024 Huang Qinjin
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+[PATCH] Workaround for Wine CMD bug https://bugs.winehq.org/show_bug.cgi?id=57137.
+
+diff --git a/Common7/Tools/vsdevcmd/core/vsdevcmd_start.bat b/Common7/Tools/vsdevcmd/core/vsdevcmd_start.bat
+--- a/Common7/Tools/vsdevcmd/core/vsdevcmd_start.bat
++++ b/Common7/Tools/vsdevcmd/core/vsdevcmd_start.bat
+@@ -8,6 +8,7 @@ call "%~dp0parse_cmd.bat" %*
+ if "%ERRORLEVEL%" NEQ "0" set /A __vscmd_vsdevcmd_errcount=__vscmd_vsdevcmd_errcount+1
+ 
+ @REM Save the current directory, if -startdir=none was specified by the user.
++set "__VSCMD_CURRENT_DIR=%CD%"
+ if /I "%VSCMD_ARG_STARTDIR%" == "none" set "__VSCMD_CURRENT_DIR=%CD%"
+ 
+ if "%VSCMD_DEBUG%" GEQ "2" (
