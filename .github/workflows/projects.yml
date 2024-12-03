@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --architecture arm64
           ./install.sh $(pwd)/msvc
       - name: Checkout gas-preprocessor
         uses: actions/checkout@v4
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --architecture arm64
           ./install.sh $(pwd)/msvc
       - name: Checkout gas-preprocessor
         uses: actions/checkout@v4
@@ -127,7 +127,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --architecture x64
           ./install.sh $(pwd)/msvc
       - name: Checkout llvm-project
         uses: actions/checkout@v4

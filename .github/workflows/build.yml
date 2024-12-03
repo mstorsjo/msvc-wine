@@ -23,7 +23,8 @@ jobs:
         run: |
           WDK_INSTALLERS=$(./wdk-download.sh --cache /var/tmp/msvc-wine "$WDK_INSTALLER_URL")
           echo Downloaded WDK installers to $WDK_INSTALLERS
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache /var/tmp/msvc-wine --with-wdk-installers "$WDK_INSTALLERS"
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache /var/tmp/msvc-wine --architecture x86 x64 arm arm64 \
+              --with-wdk-installers "$WDK_INSTALLERS"
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
@@ -43,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --architecture x86 x64 arm arm64
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
@@ -75,7 +76,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --architecture x86 x64 arm arm64
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
