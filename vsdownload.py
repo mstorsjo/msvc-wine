@@ -90,6 +90,7 @@ def getArgsParser():
     parser.add_argument("--with-asan", action=OptionalBoolean, help="Include ASAN runtime (default)")
     parser.add_argument("--with-sdk", action=OptionalBoolean, help="Include Windows SDK (default)")
     parser.add_argument("--with-atl", action=OptionalBoolean, help="Include ATL (default)")
+    parser.add_argument("--with-mfc", action=OptionalBoolean, help="Include MFC")
     parser.add_argument("--with-dia", action=OptionalBoolean, help="Include DIA SDK (default)")
     parser.add_argument("--with-msbuild", action=OptionalBoolean, help="Include MSBuild (default)")
     parser.add_argument("--with-devcmd", action=OptionalBoolean, help="Include Visual Studio Developer Command Prompt (default)")
@@ -113,12 +114,15 @@ def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, def
             appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC." + toolversion + ext + ".x86.x64")
             appendPackageSelection(args, args.with_asan, "Microsoft.VC." + toolversion + ".ASAN.X86")
             appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL")
+            appendPackageSelection(args, args.with_mfc, "Microsoft.VisualStudio.Component.VC." + toolversion + ".MFC")
         if "arm" in args.architecture:
             appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM")
             appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM")
+            appendPackageSelection(args, args.with_mfc, "Microsoft.VisualStudio.Component.VC." + toolversion + ".MFC.ARM")
         if "arm64" in args.architecture:
             appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM64")
             appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM64")
+            appendPackageSelection(args, args.with_mfc, "Microsoft.VisualStudio.Component.VC." + toolversion + ".MFC.ARM64")
 
         if args.sdk_version == None:
             args.sdk_version = sdk
@@ -186,12 +190,15 @@ def setPackageSelection(args, packages):
         appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC.Tools.x86.x64")
         appendPackageSelection(args, args.with_asan, "Microsoft.VisualCpp.ASAN.X86")
         appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC.ATL")
+        appendPackageSelection(args, args.with_mfc, "Microsoft.VisualStudio.Component.VC.ATLMFC")
     if "arm" in args.architecture:
         appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC.Tools.ARM")
         appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC.ATL.ARM")
+        appendPackageSelection(args, args.with_mfc, "Microsoft.VisualStudio.Component.VC.MFC.ARM")
     if "arm64" in args.architecture:
         appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC.Tools.ARM64")
         appendPackageSelection(args, args.with_atl, "Microsoft.VisualStudio.Component.VC.ATL.ARM64")
+        appendPackageSelection(args, args.with_mfc, "Microsoft.VisualStudio.Component.VC.MFC.ARM64")
 
     defaultPackages, args.package = args.package, defaultPackages
     defaultIgnores, args.ignore = args.ignore, defaultIgnores
