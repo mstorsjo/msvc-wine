@@ -33,7 +33,7 @@ EOF
 
 # Install dependencies with classic mode.
 EXEC "" vcpkg install sqlite3:$ARCH-windows --overlay-triplets=.
-EXEC "" file -E $VCPKG_ROOT/installed/$ARCH-windows/{,debug/}bin/sqlite3.dll
+EXEC "" file -E $VCPKG_ROOT/installed/$ARCH-windows/{,debug/}bin/sqlite3.{dll,pdb}
 
 # Create source files.
 cat >main.c <<EOF
@@ -107,7 +107,7 @@ EOF
 
 # Install dependencies with manifest mode.
 EXEC "" cmake -B b "${CMAKE_ARGS[@]}"
-EXEC "" file -E b/vcpkg_installed/$ARCH-windows/{,debug/}bin/sqlite3.dll
+EXEC "" file -E b/vcpkg_installed/$ARCH-windows/{,debug/}bin/sqlite3.{dll,pdb}
 
 EXEC "" cmake --build b --config Debug -- -v
 EXEC "" cmake --build b --config Release -- -v
