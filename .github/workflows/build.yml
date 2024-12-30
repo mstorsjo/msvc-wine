@@ -98,3 +98,15 @@ jobs:
           docker build -f Dockerfile.clang .
       # Intentionally not pushing the built docker images;
       # the installed files aren't redistributable!
+
+  test-vsdownload-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download MSVC
+        run: |
+          python vsdownload.py --accept-license --dest c:/msvc
+      - name: Inspect output
+        run: |
+          ls "c:/msvc/Windows Kits/10/Include/*/um/winnt.h"
+          ls "c:/msvc/VC/Tools/MSVC/*/include/intrin.h"
