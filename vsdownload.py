@@ -31,6 +31,32 @@ import urllib.request
 import zipfile
 
 def getArgsParser():
+    class OptionalBoolean(argparse.Action):
+        def __init__(self,
+                    option_strings,
+                    dest,
+                    default=None,
+                    help=None):
+            
+            if default is not None:
+                default_string = "yes" if default else "no"
+                if help is None:
+                    help = "default: " + default_string
+                else:
+                    help += " (default: %s)" % default_string
+
+            super().__init__(
+                option_strings=option_strings,
+                dest=dest,
+                nargs='?',
+                default=default,
+                choices=["yes", "no"],
+                help=help,
+                metavar="yes|no")
+
+        def __call__(self, parser, namespace, values, option_string=None):
+            setattr(namespace, self.dest, values != "no")
+
     parser = argparse.ArgumentParser(description = "Download and install Visual Studio")
     parser.add_argument("--manifest", metavar="manifest", help="A predownloaded manifest file")
     parser.add_argument("--save-manifest", const=True, action="store_const", help="Store the downloaded manifest to a file")
@@ -55,6 +81,12 @@ def getArgsParser():
     parser.add_argument("--keep-unpack", const=True, action="store_const", help="Keep the unpacked files that aren't otherwise selected as needed output")
     parser.add_argument("--msvc-version", metavar="version", help="Install a specific MSVC toolchain version")
     parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
+    parser.add_argument("--architecture", metavar="arch", help="Target architecture to include (x86, x64, arm, arm64), defaults to host", nargs="+")
+    parser.add_argument("--with-msvc", action=OptionalBoolean, help="Include MSVC build tools (default)")
+    parser.add_argument("--with-sdk", action=OptionalBoolean, help="Include Windows SDK (default)")
+    parser.add_argument("--with-atl", action=OptionalBoolean, help="Include ATL")
+    parser.add_argument("--with-dia", action=OptionalBoolean, help="Include DIA SDK")
+    parser.add_argument("--with-msbuild", action=OptionalBoolean, help="Include MSBuild")
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
     parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
     parser.add_argument("--only-host", default=True, const=True, action="store_const", help="Only download packages that match host arch")
@@ -62,14 +94,29 @@ def getArgsParser():
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
     if findPackage(packages, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", warn=False):
+        if "x86" in args.architecture or "x64" in args.architecture:
+            if args.with_msvc:
+                args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64")
+                args.package.append("Microsoft.VC." + toolversion + ".ASAN.X86")
+            if args.with_atl:
+                args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL")
+        if "arm" in args.architecture:
+            if args.with_msvc:
+                args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM")
+            if args.with_atl:
+                args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM")
+        if "arm64" in args.architecture:
+            if args.with_msvc:
+                args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM64")
+            if args.with_atl:
+                args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM64")
+
         if sdk.startswith("10.0.") and int(sdk[5:]) >= 22000:
             sdkpkg = "Win11SDK_" + sdk
         else:
             sdkpkg = "Win10SDK_" + sdk
-        extraarchs = ["ARM", "ARM64"]
-        args.package.extend([sdkpkg, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL"])
-        for arch in extraarchs:
-            args.package.extend(["Microsoft.VisualStudio.Component.VC." + toolversion + "." + arch, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL." + arch])
+        if args.with_sdk:
+            args.package.append(sdkpkg)
     else:
         # Options for toolchains for specific versions. The latest version in
         # each manifest isn't available as a pinned version though, so if that
@@ -88,12 +135,50 @@ def setPackageSelectionMSVC15(args, packages, userversion, sdk, toolversion, def
         args.package.extend(defaultPackages)
 
 def setPackageSelection(args, packages):
+    if not args.architecture:
+        if args.host_arch is not None:
+            args.architecture = [ args.host_arch ]
+        else:
+            args.architecture = ["x86", "x64", "arm", "arm64"]
+
+    args.with_default = len(args.package) == 0
+
+    if args.msvc_version is not None:
+        args.with_msvc = True
+        if args.with_sdk is None:
+            args.with_sdk = True
+    if args.sdk_version is not None:
+        args.with_sdk = True
+
+    # Select default packages.
+    if args.with_default:
+        for component in ["msvc", "sdk"]:
+            if getattr(args, "with_" + component) is None:
+                setattr(args, "with_" + component, True)
+
     # If no packages are selected, install these versionless packages, which
     # gives the latest/recommended version for the current manifest.
-    extraarchs = ["ARM", "ARM64"]
-    defaultPackages = ["Microsoft.VisualStudio.Workload.VCTools", "Microsoft.VisualStudio.Component.VC.ATL"]
-    for arch in extraarchs:
-        defaultPackages.extend(["Microsoft.VisualStudio.Component.VC.Tools." + arch, "Microsoft.VisualStudio.Component.VC.ATL." + arch])
+    defaultPackages = []
+    if "x86" in args.architecture or "x64" in args.architecture:
+        if args.with_msvc:
+            defaultPackages.append("Microsoft.VisualStudio.Component.VC.Tools.x86.x64")
+            defaultPackages.append("Microsoft.VisualCpp.ASAN.X86")
+        if args.with_atl:
+            defaultPackages.append("Microsoft.VisualStudio.Component.VC.ATL")
+    if "arm" in args.architecture:
+        if args.with_msvc:
+            defaultPackages.append("Microsoft.VisualStudio.Component.VC.Tools.ARM")
+        if args.with_atl:
+            defaultPackages.append("Microsoft.VisualStudio.Component.VC.ATL.ARM")
+    if "arm64" in args.architecture:
+        if args.with_msvc:
+            defaultPackages.append("Microsoft.VisualStudio.Component.VC.Tools.ARM64")
+        if args.with_atl:
+            defaultPackages.append("Microsoft.VisualStudio.Component.VC.ATL.ARM64")
+
+    # TODO
+    if args.with_sdk:
+        defaultPackages.append("Win11SDK_10.0.22621")
 
     # Note, that in the manifest for MSVC version X.Y, only version X.Y-1
     # exists with a package name like "Microsoft.VisualStudio.Component.VC."
@@ -163,19 +248,33 @@ def setPackageSelection(args, packages):
         print("Unsupported MSVC toolchain version " + args.msvc_version)
         sys.exit(1)
 
-    if len(args.package) == 0:
-        args.package = defaultPackages
+    if args.msvc_version is None:
+        args.package.extend(defaultPackages)
 
-    if args.sdk_version != None:
+    if args.sdk_version != None or not args.with_sdk:
         for key in packages:
             if key.startswith("win10sdk") or key.startswith("win11sdk"):
+                if not args.with_sdk:
+                    args.ignore.append(key)
+                    continue
                 base = key[0:8]
                 sdkname = base + "_" + args.sdk_version
                 if key == sdkname:
                     args.package.append(key)
                 else:
                     args.ignore.append(key)
-        p = packages[key][0]
+
+    if args.with_msvc:
+        args.package.append("Microsoft.VisualCpp.Servicing.Redist")
+
+    if args.with_dia:
+        args.package.append("Microsoft.VisualCpp.DIA.SDK")
+    else:
+        args.ignore.append("Microsoft.VisualCpp.DIA.SDK".lower())
+
+    if args.with_msbuild:
+        args.package.append("Microsoft.Build")
+        args.package.append("Microsoft.Build.Dependencies")
 
 def lowercaseIgnores(args):
     ignore = []
@@ -642,6 +741,7 @@ def unpackWin10WDK(src, dest):
 
 def extractPackages(selected, cache, dest):
     makedirs(dest)
+    makedirs(os.path.join(dest, "MSBuild"))
     for p in selected:
         type = p["type"]
         dir = os.path.join(cache, getPackageKey(p))
