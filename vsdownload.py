@@ -201,7 +201,6 @@ def setPackageSelection(args, packages):
                     args.package.append(key)
                 else:
                     args.ignore.append(key)
-        p = packages[key][0]
 
 def lowercaseIgnores(args):
     ignore = []
