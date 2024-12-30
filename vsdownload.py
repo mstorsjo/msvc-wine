@@ -22,6 +22,7 @@ import os
 import multiprocessing.pool
 import json
 import platform
+import re
 import shutil
 import socket
 import subprocess
@@ -212,14 +213,26 @@ def setPackageSelection(args, packages):
         args.package = defaultPackages
 
     if args.sdk_version != None:
+        found = False
+        versions = []
         for key in packages:
             if key.startswith("win10sdk") or key.startswith("win11sdk"):
                 base = key[0:8]
+                version = key[9:]
+                if re.match(r'\d+\.\d+\.\d+', version):
+                    versions += [version]
                 sdkname = base + "_" + args.sdk_version
                 if key == sdkname:
+                    found = True
                     args.package.append(key)
                 else:
                     args.ignore.append(key)
+        if not found:
+            print("WinSDK version " + args.sdk_version + " not found")
+            print("Available versions:")
+            for v in sorted(versions):
+                print("    " + v)
+            sys.exit(1)
 
 def lowercaseIgnores(args):
     ignore = []
