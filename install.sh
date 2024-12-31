@@ -73,6 +73,11 @@ cd ..
 # and the call to fixinclude lowercases those references.
 "$ORIG"/lowercase -symlink include
 "$ORIG"/fixinclude include
+if [ -d "atlmfc/include" ]; then
+    # The ATL headers are lowercased themselves, but they refer to
+    # WinSDK headers with mixed casing.
+    "$ORIG"/fixinclude "atlmfc/include"
+fi
 cd bin
 # vctip.exe is known to cause problems at some times; just remove it.
 # See https://bugs.chromium.org/p/chromium/issues/detail?id=735226 and
