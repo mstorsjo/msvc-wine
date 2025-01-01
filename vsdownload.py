@@ -67,7 +67,7 @@ def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, def
         else:
             sdkpkg = "Win10SDK_" + sdk
         extraarchs = ["ARM", "ARM64"]
-        args.package.extend([sdkpkg, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL"])
+        args.package.extend([sdkpkg, "Microsoft.VisualStudio.Component.VC." + toolversion + ".x86.x64", "Microsoft.VC." + toolversion + ".ASAN.X86", "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL"])
         for arch in extraarchs:
             args.package.extend(["Microsoft.VisualStudio.Component.VC." + toolversion + "." + arch, "Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL." + arch])
     else:
