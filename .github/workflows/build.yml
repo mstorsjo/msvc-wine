@@ -113,3 +113,50 @@ jobs:
         run: |
           ls "c:/msvc/Windows Kits/10/Include/*/um/winnt.h"
           ls "c:/msvc/VC/Tools/MSVC/*/include/intrin.h"
+
+  test-msvc-wine-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install prerequisites
+        run: |
+          sudo dpkg --add-architecture i386 && sudo apt-get update
+          sudo apt-get install wine64 wine32 python3 msitools ca-certificates winbind
+          WINE=$(command -v wine64 || command -v wine || false)
+          $WINE wineboot
+      - uses: actions/checkout@v4
+      - name: Download MSVC 2017 latest
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 15
+          ./install.sh $(pwd)/msvc
+          ./msvc/bin/x64/cl test/hello.c -Fehello.exe
+          rm -rf msvc
+      - name: Download MSVC 2019 latest
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 16
+          ./install.sh $(pwd)/msvc
+          ./msvc/bin/x64/cl test/hello.c -Fehello.exe
+          rm -rf msvc
+      - name: Download MSVC 2017 specific version
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 15 --msvc-version 15.5
+          ./install.sh $(pwd)/msvc
+          ./msvc/bin/x64/cl test/hello.c -Fehello.exe
+          rm -rf msvc
+      - name: Download MSVC 2019 specific version
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 16 --msvc-version 16.0
+          ./install.sh $(pwd)/msvc
+          ./msvc/bin/x64/cl test/hello.c -Fehello.exe
+          rm -rf msvc
+      - name: Download MSVC 2022 specific version
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 17 --msvc-version 17.0
+          ./install.sh $(pwd)/msvc
+          ./msvc/bin/x64/cl test/hello.c -Fehello.exe
+          rm -rf msvc
+      - name: Download MSVC 2022 with non-default SDK
+        run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 17 --sdk-version 10.0.26100
+          ./install.sh $(pwd)/msvc
+          ./msvc/bin/x64/cl test/hello.c -Fehello.exe
+          rm -rf msvc
