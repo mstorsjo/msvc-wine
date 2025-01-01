@@ -85,6 +85,10 @@ cd bin
 for i in $(find . -iname vctip.exe); do
     rm $i
 done
+if [ -d HostX64 ]; then
+    # 15.x - 16.4
+    mv HostX64 Hostx64
+fi
 if [ -d HostARM64 ]; then
     # 17.2 - 17.3
     mv HostARM64 Hostarm64
