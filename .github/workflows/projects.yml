@@ -16,7 +16,8 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt-get update && sudo apt-get install wine64 python3 msitools ca-certificates ninja-build winbind meson nasm
-          wine64 wineboot
+          WINE=$(command -v wine64 || command -v wine || false)
+          $WINE wineboot
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
@@ -79,7 +80,8 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt-get update && sudo apt-get install wine64 python3 msitools ca-certificates winbind nasm
-          wine64 wineboot
+          WINE=$(command -v wine64 || command -v wine || false)
+          $WINE wineboot
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
@@ -123,7 +125,8 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt-get update && sudo apt-get install wine64 python3 msitools ca-certificates cmake ninja-build winbind
-          wine64 wineboot
+          WINE=$(command -v wine64 || command -v wine || false)
+          $WINE wineboot
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |

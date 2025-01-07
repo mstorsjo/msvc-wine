@@ -15,9 +15,10 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386 && sudo apt-get update
           sudo apt-get install wine64 wine32 python3 msitools ca-certificates cmake ninja-build winbind meson
-          wine64 wineboot
+          WINE=$(command -v wine64 || command -v wine || false)
+          $WINE wineboot
           curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-5.1.1/wine-mono-5.1.1-x86.msi
-          wine64 msiexec /i wine-mono-5.1.1-x86.msi
+          $WINE msiexec /i wine-mono-5.1.1-x86.msi
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
@@ -37,9 +38,10 @@ jobs:
       - name: Install prerequisites
         run: |
           brew install wine-stable msitools cmake ninja meson
-          wine64 wineboot
+          WINE=$(command -v wine64 || command -v wine || false)
+          $WINE wineboot
           curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-9.0.0/wine-mono-9.0.0-x86.msi
-          wine64 msiexec /i wine-mono-9.0.0-x86.msi
+          $WINE msiexec /i wine-mono-9.0.0-x86.msi
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
