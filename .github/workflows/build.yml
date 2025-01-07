@@ -9,7 +9,8 @@ env:
 
 jobs:
   test-msvc-wine-linux:
-    runs-on: ubuntu-latest
+    # wdk-download.sh doesn't work on ubuntu 24.04 (ubuntu-latest)
+    runs-on: ubuntu-22.04
     steps:
       - name: Install prerequisites
         run: |
