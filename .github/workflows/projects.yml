@@ -100,7 +100,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ffmpeg/ffmpeg
-          ref: n6.0
+          ref: n7.1
           path: ffmpeg
       - name: Build ffmpeg
         run: |
