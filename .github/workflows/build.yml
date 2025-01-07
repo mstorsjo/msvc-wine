@@ -9,8 +9,7 @@ env:
 
 jobs:
   test-msvc-wine-linux:
-    # wdk-download.sh doesn't work on ubuntu 24.04 (ubuntu-latest)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Install prerequisites
         run: |
@@ -23,13 +22,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
-          WDK_INSTALLERS=$(./wdk-download.sh --cache /var/tmp/msvc-wine "$WDK_INSTALLER_URL")
-          echo Downloaded WDK installers to $WDK_INSTALLERS
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache /var/tmp/msvc-wine --with-wdk-installers "$WDK_INSTALLERS"
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache /var/tmp/msvc-wine
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
-          HAVE_WDK=1 test/test.sh $(pwd)/msvc
+          test/test.sh $(pwd)/msvc
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
 
