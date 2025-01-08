@@ -185,7 +185,13 @@ No. Using Ninja or GNU Make directly should work.
 
 ## How to integrate with vcpkg?
 
-You need define your own triplets, e.g. `my-triplets/x64-windows.cmake`:
+On Windows, you just define the two environment variables before invoking `vcpkg`:
+```cmd
+set VS170COMNTOOLS=C:\msvc\Common7\Tools\
+set VCPKG_VISUAL_STUDIO_PATH=C:\msvc
+```
+
+On Unix, you need define your own triplets, e.g. `my-triplets/x64-windows.cmake`:
 ```cmake
 set(VCPKG_TARGET_ARCHITECTURE x64)
 set(VCPKG_CRT_LINKAGE dynamic)
