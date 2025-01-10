@@ -119,6 +119,10 @@ EXEC "" TestRealPath WindowsSdkDir      $SDKBASE
 EXEC "" TestVariable WindowsSDKVersion  $(. "${BIN}msvcenv.sh" && echo $SDKVER)
 EXEC "" TestRealPath UniversalCRTSdkDir $SDKBASE
 EXEC "" TestVariable UCRTVersion        $(. "${BIN}msvcenv.sh" && echo $SDKVER)
+
+# Below tests require where.exe (available in Wine 9.3+).
+printf "%s\n" wine-9.3 $(WINEDEBUG=-all $(command -v wine64 || command -v wine) --version) | sort -VC || EXIT
+
 EXEC "" TestRealPath cl_exe             $(. "${BIN}msvcenv.sh" && echo $BINDIR)/cl.exe
 EXEC "" TestRealPath rc_exe             $(. "${BIN}msvcenv.sh" && echo $SDKBINDIR)/rc.exe
 EXEC "" TestRealPath MSBuild_exe        $(. "${BIN}msvcenv.sh" && echo $MSBUILDBINDIR)/MSBuild.exe
