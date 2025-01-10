@@ -119,8 +119,9 @@ EXEC "" TestUnixPath WindowsSdkDir      $SDKBASE
 EXEC "" TestVariable WindowsSDKVersion  $(. "${BIN}msvcenv.sh" && echo $SDKVER)
 EXEC "" TestUnixPath UniversalCRTSdkDir $SDKBASE
 EXEC "" TestUnixPath UCRTVersion        $(. "${BIN}msvcenv.sh" && echo $SDKVER)
-EXEC "" TestUnixPath cl_exe             $(. "${BIN}msvcenv.sh" && echo $BINDIR)/cl.exe
-EXEC "" TestUnixPath rc_exe             $(. "${BIN}msvcenv.sh" && echo $SDKBINDIR)/rc.exe
-EXEC "" TestUnixPath MSBuild_exe        $(. "${BIN}msvcenv.sh" && echo $MSBUILDBINDIR)/MSBuild.exe
+# Below tests require where.exe (available in Wine 9.3+).
+# EXEC "" TestUnixPath cl_exe             $(. "${BIN}msvcenv.sh" && echo $BINDIR)/cl.exe
+# EXEC "" TestUnixPath rc_exe             $(. "${BIN}msvcenv.sh" && echo $SDKBINDIR)/rc.exe
+# EXEC "" TestUnixPath MSBuild_exe        $(. "${BIN}msvcenv.sh" && echo $MSBUILDBINDIR)/MSBuild.exe
 
 EXIT
