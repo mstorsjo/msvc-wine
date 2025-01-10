@@ -9,7 +9,10 @@ env:
 
 jobs:
   test-msvc-wine-linux:
-    runs-on: ubuntu-latest
+    # Using a pinned version of Ubuntu here; this determines the version of
+    # Wine that gets installed - the version of wine-mono that is installed
+    # below depends on the host version of Wine.
+    runs-on: ubuntu-24.04
     steps:
       - name: Install prerequisites
         run: |
