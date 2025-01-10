@@ -9,8 +9,7 @@ env:
 
 jobs:
   test-msvc-wine-linux:
-    # wdk-download.sh doesn't work on ubuntu 24.04 (ubuntu-latest)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Install prerequisites
         run: |
@@ -18,8 +17,9 @@ jobs:
           sudo apt-get install wine64 wine32 python3 msitools ca-certificates cmake ninja-build winbind meson
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
-          curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-5.1.1/wine-mono-5.1.1-x86.msi
-          $WINE msiexec /i wine-mono-5.1.1-x86.msi
+          # Check https://gitlab.winehq.org/wine/wine/-/wikis/Wine-Mono#versions before updating the WINE package!
+          curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-8.1.0/wine-mono-8.1.0-x86.msi
+          $WINE msiexec /i wine-mono-8.1.0-x86.msi
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
