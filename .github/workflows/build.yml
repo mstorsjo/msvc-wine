@@ -138,10 +138,9 @@ jobs:
       - name: Download MSVC
         run: |
           python vsdownload.py --accept-license --dest c:/msvc
-      - name: Inspect output
+      - name: Test using the installed tools
         run: |
-          ls "c:/msvc/Windows Kits/10/Include/*/um/winnt.h"
-          ls "c:/msvc/VC/Tools/MSVC/*/include/intrin.h"
+          test\test.bat c:\msvc
 
   test-msvc-wine-versions:
     runs-on: ubuntu-latest
