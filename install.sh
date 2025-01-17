@@ -186,7 +186,7 @@ cat "$ORIG"/wrappers/msvcenv.sh \
 > msvcenv.sh
 
 for arch in x86 x64 arm arm64; do
-    if [ ! -d "vc/tools/msvc/$MSVCVER/bin/Hostx64/$arch" ]; then
+    if [ ! -d "vc/tools/msvc/$MSVCVER/bin/Host$host/$arch" ]; then
         continue
     fi
     mkdir -p bin/$arch
