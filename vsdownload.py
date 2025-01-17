@@ -38,7 +38,7 @@ def getArgsParser():
                     dest,
                     default=None,
                     help=None):
-            
+
             if default is not None:
                 default_string = "yes" if default else "no"
                 if help is None:
@@ -287,7 +287,7 @@ def prioritizePackage(arch, a, b):
         if c == arch:
             return -1
         return 1
-    
+
     for k in ["chip", "machineArch", "productArch"]:
         r = archOrd(k, a) - archOrd(k, b)
         if r != 0:
