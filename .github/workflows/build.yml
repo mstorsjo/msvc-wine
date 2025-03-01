@@ -44,8 +44,6 @@ jobs:
           brew install wine-stable msitools cmake ninja meson
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
-          curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-9.0.0/wine-mono-9.0.0-x86.msi
-          $WINE msiexec /i wine-mono-9.0.0-x86.msi
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
