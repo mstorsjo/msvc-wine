@@ -77,6 +77,7 @@ def getArgsParser():
     parser.add_argument("--print-deps-tree", const=True, action="store_const", help="Print a tree of resolved dependencies for the given selection")
     parser.add_argument("--print-reverse-deps", const=True, action="store_const", help="Print a tree of packages that depend on the given selection")
     parser.add_argument("--print-selection", const=True, action="store_const", help="Print a list of the individual packages that are selected to be installed")
+    parser.add_argument("--print-hashes", const=True, action="store_const", help="Print the SHA256 sums of all files that would be downloaded for the given selection")
     parser.add_argument("--only-download", const=True, action="store_const", help="Stop after downloading package files")
     parser.add_argument("--only-unpack", const=True, action="store_const", help="Unpack the selected packages and keep all files, in the layout they are unpacked, don't restructure and prune files other than what's needed for MSVC CLI tools")
     parser.add_argument("--keep-unpack", const=True, action="store_const", help="Keep the unpacked files that aren't otherwise selected as needed output")
@@ -244,9 +245,11 @@ def lowercaseIgnores(args):
 def getManifest(args):
     if args.manifest == None:
         url = "https://aka.ms/vs/%s/%s/channel" % (args.major, args.type)
-        print("Fetching %s" % (url))
+        if not args.print_hashes:
+            print("Fetching %s" % (url))
         manifest = json.loads(urllib.request.urlopen(url).read())
-        print("Got toplevel manifest for %s" % (manifest["info"]["productDisplayVersion"]))
+        if not args.print_hashes:
+            print("Got toplevel manifest for %s" % (manifest["info"]["productDisplayVersion"]))
         for item in manifest["channelItems"]:
             if "type" in item and item["type"] == "Manifest":
                 args.manifest = item["payloads"][0]["url"]
@@ -259,21 +262,24 @@ def getManifest(args):
 
     manifestdata = urllib.request.urlopen(args.manifest).read()
     manifest = json.loads(manifestdata)
-    print("Loaded installer manifest for %s" % (manifest["info"]["productDisplayVersion"]))
+    if not args.print_hashes:
+        print("Loaded installer manifest for %s" % (manifest["info"]["productDisplayVersion"]))
 
     if args.save_manifest:
         filename = "%s.manifest" % (manifest["info"]["productDisplayVersion"])
         if os.path.isfile(filename):
             oldfile = open(filename, "rb").read()
-            if oldfile != manifestdata:
-                print("Old saved manifest in \"%s\" differs from newly downloaded one, not overwriting!" % (filename))
-            else:
-                print("Old saved manifest in \"%s\" is still current" % (filename))
+            if not args.print_hashes:
+                if oldfile != manifestdata:
+                    print("Old saved manifest in \"%s\" differs from newly downloaded one, not overwriting!" % (filename))
+                else:
+                    print("Old saved manifest in \"%s\" is still current" % (filename))
         else:
             f = open(filename, "wb")
             f.write(manifestdata)
             f.close()
-            print("Saved installer manifest to \"%s\"" % (filename))
+            if not args.print_hashes:
+                print("Saved installer manifest to \"%s\"" % (filename))
 
     return manifest
 
@@ -532,6 +538,23 @@ def getPayloadName(payload):
         name = name.split("/")[-1]
     return name
 
+def printPayloadHashes(selected):
+    sums = []
+    for p in selected:
+        if not "payloads" in p:
+            continue
+        key = getPackageKey(p)
+        for payload in p["payloads"]:
+            if not "sha256" in payload:
+                continue
+            hash = payload["sha256"].lower()
+            name = getPayloadName(payload)
+            path = os.path.join(key, name)
+            sums.append(hash + ' *' + path)
+    sums.sort(key=lambda x:x[66:].encode())
+    for x in sums:
+        print(x)
+
 def downloadPackages(selected, cache, allowHashMismatch = False):
     pool = multiprocessing.Pool(5)
     tasks = []
@@ -761,7 +784,7 @@ if __name__ == "__main__":
 
     if args.host_arch is None:
         print("WARNING: Unable to detect host architecture")
-    else:
+    elif not args.print_hashes:
         print("Install packages for %s host architecture" % args.host_arch)
 
     packages = getPackages(getManifest(args), args.host_arch)
@@ -798,6 +821,10 @@ if __name__ == "__main__":
         sys.exit(0)
 
     selected = getSelectedPackages(packages, args)
+
+    if args.print_hashes:
+        printPayloadHashes(selected)
+        sys.exit(0)
 
     if args.print_selection:
         printPackageList(selected)
