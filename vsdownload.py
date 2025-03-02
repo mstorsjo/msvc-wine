@@ -86,6 +86,7 @@ def getArgsParser():
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
     parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
     parser.add_argument("--only-host", default=True, action=OptionalBoolean, help="Only download packages that match host arch")
+    parser.add_argument("--skip-patch", action="store_true", help="Don't patch downloaded packages")
     return parser
 
 def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, defaultPackages):
@@ -723,6 +724,29 @@ def extractPackages(selected, cache, dest):
         else:
             print("Skipping unpacking of " + p["id"] + " of type " + type)
 
+def patchPackages(dest):
+    patches = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patches")
+    if not os.path.isdir(patches):
+        return
+    for patch in glob.iglob(os.path.join(patches, "**"), recursive=True):
+        if os.path.isdir(patch):
+            continue
+        p = os.path.relpath(patch, patches)
+        f, op = os.path.splitext(p)
+        if op == ".patch":
+            if os.access(os.path.join(dest, f), os.F_OK):
+                if 0 != subprocess.call(["git", "--work-tree=.", "apply", "--quiet", "--reverse", "--check", patch], cwd=dest):
+                    print("Patching " + f)
+                    subprocess.check_call(["git", "--work-tree=.", "apply", patch], cwd=dest)
+        elif op == ".remove":
+            if os.access(os.path.join(dest, f), os.F_OK):
+                print("Removing " + f)
+                os.remove(os.path.join(dest, f))
+        else:
+            print("Copying " + p)
+            os.makedirs(os.path.dirname(os.path.join(dest, p)), exist_ok=True)
+            shutil.copyfile(patch, os.path.join(dest, p))
+
 def moveVCSDK(unpack, dest):
     # Move some components out from the unpack directory,
     # allowing the rest of unpacked files to be removed.
@@ -734,6 +758,10 @@ def moveVCSDK(unpack, dest):
         "DIA SDK",
         # MSBuild is the standard VC build tool.
         "MSBuild",
+        # This directory contains batch scripts to setup Developer Command Prompt.
+        # Environment variable VS170COMNTOOLS points to this directory, and some
+        # tools use it to locate VS installation root and MSVC toolchains.
+        os.path.join("Common7", "Tools"),
     ]
     for dir in filter(None, components):
         mergeTrees(os.path.join(unpack, dir), os.path.join(dest, dir))
@@ -839,6 +867,8 @@ if __name__ == "__main__":
             moveVCSDK(unpack, dest)
             if not args.keep_unpack:
                 shutil.rmtree(unpack)
+            if not args.skip_patch and args.major == 17: # Only apply patches to latest VS
+                patchPackages(dest)
     finally:
         if tempcache != None:
             shutil.rmtree(tempcache)
