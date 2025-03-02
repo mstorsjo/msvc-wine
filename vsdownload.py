@@ -64,6 +64,7 @@ def getArgsParser():
     parser.add_argument("--major", default=17, metavar="version", help="The major version to download (defaults to 17)")
     parser.add_argument("--preview", dest="type", default="release", const="pre", action="store_const", help="Download the preview version instead of the release version")
     parser.add_argument("--cache", metavar="dir", help="Directory to use as a persistent cache for downloaded files")
+    parser.add_argument("--migrate", metavar="dir", help="Old cache directory from which to migrate selected packages when downloading into a new cache")
     parser.add_argument("--dest", metavar="dir", help="Directory to install into")
     parser.add_argument("package", metavar="package", help="Package to install. If omitted, installs the default command line tools.", nargs="*")
     parser.add_argument("--ignore", metavar="component", help="Package to skip", action="append")
@@ -532,27 +533,94 @@ def getPayloadName(payload):
         name = name.split("/")[-1]
     return name
 
-def downloadPackages(selected, cache, allowHashMismatch = False):
+def pruneCacheKeyDir(path):
+    """If the path is an empty directory, removes the directory. If the
+       path is a symlink to an empty directory, removes the symlink but
+       not the target directory. If the path is a broken symlink, removes
+       the symlink. In all other cases removes nothing.
+
+       If the path is a non-empty directory, or a symlink to a non-empty
+       directory, it is deemed to be in use and therefore not subject to
+       pruning. In that case this function returns the path; in all other
+       cases it returns None."""
+    if not os.path.exists(path):
+        if os.path.islink(path):
+            print("Pruning %s (broken symlink)" % (path))
+            os.path.remove(path)
+    elif os.path.isdir(path):
+        with os.scandir(path) as it:
+            if any(it):
+                # dir or symlink to dir, non-empty
+                return path
+        if os.path.islink(path):
+            print("Pruning %s (empty dir symlink)" % (path))
+            os.path.remove(path)
+        else:
+            print("Pruning %s (empty dir)" % (path))
+            os.rmdir(path)
+    return None
+
+def getOrPruneCacheKeyDir(cache, key):
+    """Calls pruneCacheKeyDir if the cache directory path is not None,
+       otherwise returns None immediately. Therefore if this function
+       returns non-None, it is a known valid cache key directory path."""
+    if cache is not None:
+        return pruneCacheKeyDir(os.path.join(cache, key))
+    return None
+
+def getCacheFile(keydir, name):
+    if keydir is not None:
+        path = os.path.join(keydir, name)
+        if os.access(path, os.F_OK):
+            return path
+    return None
+
+def sumTuple(tuples):
+    a, b = 0, 0
+    for t in tuples:
+        a += t[0]
+        b += t[1]
+    return (a, b)
+
+def acquirePackages(selected, cache, oldcache = None, allowHashMismatch = False):
+    if oldcache is not None:
+        # A migrated cache must be a directory and not the same as the new cache.
+        if not os.path.isdir(oldcache) or os.path.samefile(cache, oldcache):
+            oldcache = None
     pool = multiprocessing.Pool(5)
     tasks = []
+    prune = []
     makedirs(cache)
     for p in selected:
         if not "payloads" in p:
             continue
-        dir = os.path.join(cache, getPackageKey(p))
-        makedirs(dir)
-        for payload in p["payloads"]:
+        key = getPackageKey(p)
+        destdir = os.path.join(cache, key)
+        srcdir = getOrPruneCacheKeyDir(oldcache, key)
+        payloads = p["payloads"]
+        # Trying to prune empty directories during the pool run causes
+        # access/delete races, so make a list of them for a later pass.
+        if srcdir is not None and len(payloads) > 0:
+            prune.append(srcdir)
+        makedirs(destdir)
+        for payload in payloads:
             name = getPayloadName(payload)
-            destname = os.path.join(dir, name)
-            fileid = os.path.join(getPackageKey(p), name)
-            args = (payload, destname, fileid, allowHashMismatch)
-            tasks.append(pool.apply_async(_downloadPayload, args))
+            destname = os.path.join(destdir, name)
+            fileid = os.path.join(key, name)
+            srcname = getCacheFile(srcdir, name)
+            args = (payload, destname, fileid, srcname, allowHashMismatch)
+            tasks.append(pool.apply_async(_acquirePayload, args))
 
-    downloaded = sum(task.get() for task in tasks)
+    downloaded, migrated = sumTuple(task.get() for task in tasks)
     pool.close()
-    print("Downloaded %s in total" % (formatSize(downloaded)))
+    if oldcache is None:
+        print("Downloaded %s in total" % (formatSize(downloaded)))
+    else:
+        for p in prune:
+            pruneCacheKeyDir(p)
+        print("Downloaded %s, migrated %s (%s total)" % (formatSize(downloaded), formatSize(migrated), formatSize(downloaded + migrated)))
 
-def _downloadPayload(payload, destname, fileid, allowHashMismatch):
+def _acquirePayload(payload, destname, fileid, srcname, allowHashMismatch):
     attempts = 5
     for attempt in range(attempts):
         try:
@@ -563,12 +631,26 @@ def _downloadPayload(payload, destname, fileid, allowHashMismatch):
                         os.remove(destname)
                     else:
                         print("Using existing file %s" % (fileid), flush=True)
-                        return 0
+                        if srcname is not None:
+                            os.remove(srcname)
+                        return (0, 0)
                 else:
-                    return 0
+                    return (0, 0)
             size = 0
             if "size" in payload:
                 size = payload["size"]
+            if srcname is not None:
+                if "sha256" in payload:
+                    if sha256File(srcname).lower() != payload["sha256"].lower():
+                        print("Incorrect old cached copy %s, removing" % (fileid), flush=True)
+                        os.remove(srcname)
+                        srcname = None
+                    else:
+                        print("Migrating %s" % (fileid), flush=True)
+                        shutil.move(srcname, destname)
+                        return (0, size)
+                else:
+                    return (0, 0)
             print("Downloading %s (%s)" % (fileid, formatSize(size)), flush=True)
             urllib.request.urlretrieve(payload["url"], destname)
             if "sha256" in payload:
@@ -577,7 +659,7 @@ def _downloadPayload(payload, destname, fileid, allowHashMismatch):
                         print("WARNING: Incorrect hash for downloaded file %s" % (fileid), flush=True)
                     else:
                         raise Exception("Incorrect hash for downloaded file %s, aborting" % fileid)
-            return size
+            return (size, 0)
         except Exception as e:
             if attempt == attempts - 1:
                 raise
@@ -818,8 +900,12 @@ if __name__ == "__main__":
         print("No destination directory set!")
         sys.exit(1)
 
+    oldcache = None
+    if args.migrate is not None:
+        oldcache = os.path.abspath(args.migrate)
+
     try:
-        downloadPackages(selected, cache, allowHashMismatch=args.only_download)
+        acquirePackages(selected, cache, oldcache, allowHashMismatch=args.only_download)
         if args.only_download:
             sys.exit(0)
 
