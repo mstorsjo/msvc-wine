@@ -43,8 +43,17 @@ for a; do
 		;;
 	@*CMakeFiles*.rsp)
 		# Rewrite absolute paths in response files like /absolute/path into z:/absolute/path.
-		filepath=$(realpath "${a:1}")
-		sed -i -r 's@(^| |\n)(\/(([^\/ \n]+)\/+)+([^\/ \n]+))@Z:\2 @g' "$filepath"
+		if [[ $EXE == "link.exe" || $EXE == "lib.exe" ]]
+		then
+      if sed --help 2>&1 | grep '\-i extension' >/dev/null; then
+          inplace=(-i '') # BSD sed
+      else
+          inplace=(-i)    # GNU sed
+      fi
+
+  		filepath=$(realpath "${a:1}")
+      sed "${inplace[@]}" -E 's@(^|[[:blank:]])((/[^/[:blank:]]*){2,})@\1z:\2@g' "$filepath"
+    fi
 		;;
 	/*)
 		# Rewrite options like /absolute/path into z:/absolute/path.
