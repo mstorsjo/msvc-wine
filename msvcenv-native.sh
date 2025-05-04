@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #
 # Copyright (c) 2019 Martin Storsjo
 #
@@ -33,9 +33,9 @@ else
     if [ ! -f "$ENV" ]; then
         echo $ENV doesn\'t exist
     else
-        export INCLUDE="$(bash -c ". $ENV && /bin/echo \"\$INCLUDE\"" | sed s/z://g | sed 's/\\/\//g')"
-        export LIB="$(bash -c ". $ENV && /bin/echo \"\$LIB\"" | sed s/z://g | sed 's/\\/\//g')"
-        MSVCARCH="$(bash -c ". $ENV && /bin/echo \"\$ARCH\"")"
+        export INCLUDE="$(bash -c ". $ENV && /usr/bin/env echo \"\$INCLUDE\"" | sed s/z://g | sed 's/\\/\//g')"
+        export LIB="$(bash -c ". $ENV && /usr/bin/env echo \"\$LIB\"" | sed s/z://g | sed 's/\\/\//g')"
+        MSVCARCH="$(bash -c ". $ENV && /usr/bin/env echo \"\$ARCH\"")"
         case $MSVCARCH in
         x86) TARGET_ARCH=i686 ;;
         x64) TARGET_ARCH=x86_64 ;;

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #
 # Copyright (c) 2019 Martin Storsjo
 #
