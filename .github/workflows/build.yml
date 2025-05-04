@@ -142,6 +142,22 @@ jobs:
         run: |
           test\test.bat c:\msvc
 
+  test-vsdownload-windows-arm:
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v4
+      # `platform.machine()` returns AMD64 instead of ARM64 for the pre-installed Python 3.9.
+      # Install a newer version of Python that is built for ARM64.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '>=3.13'
+      - name: Download MSVC
+        run: |
+          python vsdownload.py --accept-license --dest c:/msvc
+      - name: Test using the installed tools
+        run: |
+          test\test.bat c:\msvc
+
   test-msvc-wine-versions:
     runs-on: ubuntu-latest
     steps:
