@@ -23,6 +23,10 @@ for arch in x86 x64 arm arm64; do
     if [ ! -d "$BIN" ]; then
         continue
     fi
+    # Windows SDK 10.0.26100.0 no long targets Arm32.
+    if [ "$arch" = "arm" ] && printf "%s\n" 10.0.26100.0 $(. "${BIN}msvcenv.sh" && echo "$SDKVER") | sort -VC; then
+        continue
+    fi
 
     EXEC "" BIN=$BIN ./test-clang-cl-cmds.sh
     EXEC "" BIN=$BIN ./test-cmake-clang-cl.sh

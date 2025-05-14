@@ -7,5 +7,6 @@ RUN \
     wineserver -p && \
     $(command -v wine64 || command -v wine || false) wineboot && \
     for arch in x86 x64 arm arm64; do \
+        [ ! -d /opt/msvc/kits/10/lib/*/um/$arch ] || \
         /opt/msvc/bin/$arch/cl hello.c -Fehello-$arch.exe || exit 1; \
     done
