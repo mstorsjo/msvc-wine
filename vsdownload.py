@@ -235,6 +235,9 @@ def setPackageSelection(args, packages):
                 print("    " + v)
             sys.exit(1)
 
+    if args.with_wdk_installers is not None:
+        args.package.append("Component.Microsoft.Windows.DriverKit.BuildTools")
+
 def lowercaseIgnores(args):
     ignore = []
     if args.ignore != None:
