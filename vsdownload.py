@@ -29,6 +29,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
+import xml.etree.ElementTree as ET
 import zipfile
 
 def getArgsParser():
@@ -723,6 +724,18 @@ def extractPackages(selected, cache, dest):
         else:
             print("Skipping unpacking of " + p["id"] + " of type " + type)
 
+def copyDependentAssemblies(app):
+    if not os.path.isfile(app + ".config"):
+        return
+    dest = os.path.dirname(app)
+    ns = "{urn:schemas-microsoft-com:asm.v1}"
+    configuration = ET.parse(app + ".config")
+    for codeBase in configuration.findall(f"./runtime/{ns}assemblyBinding/{ns}dependentAssembly/{ns}codeBase/[@href]"):
+        href = codeBase.attrib["href"].replace("\\", "/")
+        src = os.path.join(dest, href)
+        if os.path.isfile(src):
+            shutil.copy(src, dest)
+
 def moveVCSDK(unpack, dest):
     # Move some components out from the unpack directory,
     # allowing the rest of unpacked files to be removed.
@@ -834,6 +847,12 @@ if __name__ == "__main__":
 
         if args.with_wdk_installers is not None:
             unpackWin10WDK(args.with_wdk_installers, unpack)
+
+        if sys.platform != "win32":
+            # Wine doesn't support dependentAssembly yet.
+            # Manually copy dependencies to app directory.
+            copyDependentAssemblies(os.path.join(unpack, "MSBuild", "Current", "Bin", "amd64", "MSBuild.exe"))
+            copyDependentAssemblies(os.path.join(unpack, "MSBuild", "Current", "Bin", "arm64", "MSBuild.exe"))
 
         if not args.only_unpack:
             moveVCSDK(unpack, dest)
