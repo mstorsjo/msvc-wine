@@ -25,9 +25,9 @@ test.sys  = 1,,
 ;*****************************************
 
 [Manufacturer]
-%ManufacturerName%=Standard,NT$ARCH$.10.0
+%ManufacturerName%=Standard,NT$ARCH$.10.0...16299
 
-[Standard.NT$ARCH$.10.0]
+[Standard.NT$ARCH$.10.0...16299]
 %test.DeviceDesc%=test_Device, Root\test
 
 [test_Device.NT]
