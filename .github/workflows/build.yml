@@ -17,7 +17,7 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo dpkg --add-architecture i386 && sudo apt-get update
-          sudo apt-get install wine64 wine32 python3 msitools ca-certificates cmake ninja-build winbind meson
+          sudo apt-get update && sudo apt-get install wine64 wine32 python3 msitools ca-certificates cmake ninja-build winbind meson
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
           # Check https://gitlab.winehq.org/wine/wine/-/wikis/Wine-Mono#versions before updating the WINE package!
@@ -123,7 +123,7 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo dpkg --add-architecture i386 && sudo apt-get update
-          sudo apt-get install wine64 wine32 python3 msitools ca-certificates winbind
+          sudo apt-get update && sudo apt-get install wine64 wine32 python3 msitools ca-certificates winbind
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
       - uses: actions/checkout@v4
