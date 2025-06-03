@@ -103,11 +103,8 @@ def setPackageSelectionMSVC16(args, packages, userversion, sdk, toolversion, def
             args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ARM64")
             args.package.append("Microsoft.VisualStudio.Component.VC." + toolversion + ".ATL.ARM64")
 
-        if sdk.startswith("10.0.") and int(sdk[5:]) >= 22000:
-            sdkpkg = "Win11SDK_" + sdk
-        else:
-            sdkpkg = "Win10SDK_" + sdk
-        args.package.append(sdkpkg)
+        if args.sdk_version == None:
+            args.sdk_version = sdk
     else:
         # Options for toolchains for specific versions. The latest version in
         # each manifest isn't available as a pinned version though, so if that
