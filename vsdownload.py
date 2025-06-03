@@ -194,6 +194,12 @@ def setPackageSelection(args, packages):
         setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.40.17.10", defaultPackages)
     elif args.msvc_version == "17.11":
         setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.41.17.11", defaultPackages)
+    elif args.msvc_version == "17.12":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.42.17.12", defaultPackages)
+    elif args.msvc_version == "17.13":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.22621", "14.43.17.13", defaultPackages)
+    elif args.msvc_version == "17.14":
+        setPackageSelectionMSVC16(args, packages, args.msvc_version, "10.0.26100", "14.44.17.14", defaultPackages)
 
     elif args.msvc_version == "15.4":
         setPackageSelectionMSVC15(args, packages, args.msvc_version, "10.0.16299", "14.11", defaultPackages)
