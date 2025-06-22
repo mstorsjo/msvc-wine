@@ -62,6 +62,32 @@ jobs:
       # Intentionally not storing any artifacts with the downloaded tools;
       # the installed files aren't redistributable!
 
+  test-msvc-wine-linux-arm-target-host-only:
+    runs-on: ubuntu-24.04-arm
+    # Use a custom base container for providing wine; the base Wine package
+    # in Ubuntu 24.04 is broken on aarch64, see
+    # https://bugs.launchpad.net/ubuntu/+source/wine/+bug/2102681 and
+    # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1100695. (Fixed in
+    # Debian for now, but not yet in Ubuntu.) MSVC on wine on aarch64 requires
+    # Wine 8.4 or newer.
+    container: ghcr.io/mstorsjo/wine
+    steps:
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update && sudo apt-get install python3 msitools ca-certificates cmake ninja-build winbind meson
+          WINE=$(command -v wine64 || command -v wine || false)
+          $WINE wineboot
+      - uses: actions/checkout@v4
+      - name: Download MSVC
+        run: |
+          ./vsdownload.py --accept-license --architecture host --dest $(pwd)/msvc
+          ./install.sh $(pwd)/msvc
+      - name: Test using the installed tools
+        run: |
+          test/test.sh $(pwd)/msvc
+      # Intentionally not storing any artifacts with the downloaded tools;
+      # the installed files aren't redistributable!
+
   test-msvc-wine-macos:
     runs-on: macos-latest
     steps:
@@ -149,6 +175,17 @@ jobs:
       - name: Download MSVC
         run: |
           python vsdownload.py --accept-license --dest c:/msvc
+      - name: Test using the installed tools
+        run: |
+          test\test.bat c:\msvc
+
+  test-vsdownload-windows-arm-target-host-only:
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download MSVC
+        run: |
+          python vsdownload.py --accept-license --architecture host --dest c:/msvc
       - name: Test using the installed tools
         run: |
           test\test.bat c:\msvc
