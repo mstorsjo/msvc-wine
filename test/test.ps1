@@ -172,6 +172,8 @@ foreach ($target in $TargetArchs) {
     if ($env:VCPKG_ROOT) {
         EXEC "" @PWSH test-vcpkg.ps1 @CommonArgs
     }
+
+    EXEC "" @PWSH test-msbuild.ps1 @CommonArgs
 }
 
 QUIT
