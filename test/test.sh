@@ -85,6 +85,8 @@ else
     cd "$CWD"
 fi
 
+EXEC "" ./test-vsdownload.sh
+
 for arch in x86 x64 arm arm64; do
     BIN="${1:-/opt/msvc}/bin/$arch/"
     if [ ! -d "$BIN" ]; then

@@ -78,6 +78,7 @@ def getArgsParser():
     parser.add_argument("--print-deps-tree", const=True, action="store_const", help="Print a tree of resolved dependencies for the given selection")
     parser.add_argument("--print-reverse-deps", const=True, action="store_const", help="Print a tree of packages that depend on the given selection")
     parser.add_argument("--print-selection", const=True, action="store_const", help="Print a list of the individual packages that are selected to be installed")
+    parser.add_argument("--verify-selection", metavar="file", help="Verify the selected packages against a file with a list of package id regex")
     parser.add_argument("--only-download", const=True, action="store_const", help="Stop after downloading package files")
     parser.add_argument("--only-unpack", const=True, action="store_const", help="Unpack the selected packages and keep all files, in the layout they are unpacked, don't restructure and prune files other than what's needed for MSVC CLI tools")
     parser.add_argument("--keep-unpack", const=True, action="store_const", help="Keep the unpacked files that aren't otherwise selected as needed output")
@@ -478,6 +479,47 @@ def getSelectedPackages(packages, args):
         ret.extend(aggregateDepends(packages, included, i, {}, args))
     return ret
 
+def verifySelectedPackages(packages, file):
+    class Result:
+        def __init__(self, pattern, op, expected):
+            self.pattern = pattern
+            # Treat "." as a literal character, since it is very common in package ids.
+            self.re = re.compile(pattern.replace(".", "\\."), re.IGNORECASE)
+            self.matches = []
+            self.op = ">" if op is None else op
+            self.expected = 0 if expected is None else int(expected)
+
+    results = []    
+    with sys.stdin if file == "-" else open(file, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line == "" or line.startswith("#"):
+                continue
+            m = re.fullmatch(r"(\S+)(\s+(<|<=|>|>=|=)(\d+))?", line)
+            if m is None:
+                raise Exception(f"Invalid line in verification file: {line}")
+            results.append(Result(m.group(1), m.group(3), m.group(4)))
+
+    for p in packages:
+        id = p["id"]
+        for r in results:
+            if r.re.fullmatch(id):
+                r.matches.append(id)
+
+    fail = False
+    for r in results:
+        count = len(r.matches)
+        if r.op == ">" and not count > r.expected or \
+            r.op == ">=" and not count >= r.expected or \
+            r.op == "<" and not count < r.expected or \
+            r.op == "<=" and not count <= r.expected or \
+            r.op == "=" and not count == r.expected:
+            fail = True
+            print(f"Verification failed: {r.pattern} {r.op}{r.expected} ({count})")
+            for p in sorted(r.matches):
+                print("    " + p)
+    return not fail
+
 def sumInstalledSize(l):
     sum = 0
     for p in l:
@@ -849,6 +891,12 @@ if __name__ == "__main__":
 
     if args.print_selection:
         printPackageList(selected)
+
+    if args.verify_selection is not None:
+        if verifySelectedPackages(selected, args.verify_selection):
+            sys.exit(0)
+        else:
+            sys.exit(1)
 
     print("Selected %d packages, for a total download size of %s, install size of %s" % (len(selected), formatSize(sumDownloadSize(selected)), formatSize(sumInstalledSize(selected))))
 
