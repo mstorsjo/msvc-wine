@@ -377,6 +377,22 @@ def matchPackageHostArch(p, host):
 
     return True
 
+def matchPackageTargetArch(p, archs):
+    if archs is None:
+        return True
+
+    known_archs = ["x86", "x64", "arm", "arm64"]
+
+    # Some packages have target arch in their ids, e.g.
+    # - Microsoft.VisualCpp.Tools.HostARM64.TargetX64
+    # - Microsoft.VisualCpp.Tools.HostX64.TargetX64
+    id = p["id"].lower()
+    for a in known_archs:
+        if re.search(fr"\.target{a}(\W|$)", id):
+            return a in archs
+
+    return True
+
 def printDepends(packages, target, constraints, indent, args):
     chipstr = ""
     for k in ["chip", "machineArch"]:
@@ -403,6 +419,9 @@ def printDepends(packages, target, constraints, indent, args):
             ignore = True
         elif args.only_host and not matchPackageHostArch(p, args.host_arch):
             ignorestr = " (HostArchMismatch)"
+            ignore = True
+        elif not matchPackageTargetArch(p, args.architecture):
+            ignorestr = " (TargetArchMismatch)"
             ignore = True
     print(indent + target + chipstr + deptypestr + ignorestr)
     if ignore:
@@ -453,6 +472,8 @@ def aggregateDepends(packages, included, target, constraints, args):
     if p == None:
         return []
     if args.only_host and not matchPackageHostArch(p, args.host_arch):
+        return []
+    if not matchPackageTargetArch(p, args.architecture):
         return []
     packagekey = getPackageKey(p)
     if packagekey in included:
