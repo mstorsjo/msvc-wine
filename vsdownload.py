@@ -62,8 +62,8 @@ def getArgsParser():
     parser = argparse.ArgumentParser(description = "Download and install Visual Studio")
     parser.add_argument("--manifest", metavar="manifest", help="A predownloaded manifest file")
     parser.add_argument("--save-manifest", const=True, action="store_const", help="Store the downloaded manifest to a file")
-    parser.add_argument("--major", default=17, metavar="version", help="The major version to download (defaults to 17)")
-    parser.add_argument("--preview", dest="type", default="release", const="pre", action="store_const", help="Download the preview version instead of the release version")
+    parser.add_argument("--major", default=17, type=int, metavar="version", help="The major version to download (defaults to 17)")
+    parser.add_argument("--preview", const=True, action="store_const", help="Download the preview version instead of the release version")
     parser.add_argument("--cache", metavar="dir", help="Directory to use as a persistent cache for downloaded files")
     parser.add_argument("--dest", metavar="dir", help="Directory to install into")
     parser.add_argument("package", metavar="package", help="Package to install. If omitted, installs the default command line tools.", nargs="*")
@@ -251,7 +251,13 @@ def lowercaseIgnores(args):
 
 def getManifest(args):
     if args.manifest == None:
-        url = "https://aka.ms/vs/%s/%s/channel" % (args.major, args.type)
+        type = "release"
+        if args.preview:
+            if args.major < 18:
+                type = "pre"
+            else:
+                type = "insiders"
+        url = "https://aka.ms/vs/%s/%s/channel" % (args.major, type)
         print("Fetching %s" % (url))
         manifest = json.loads(urllib.request.urlopen(url).read())
         print("Got toplevel manifest for %s" % (manifest["info"]["productDisplayVersion"]))
