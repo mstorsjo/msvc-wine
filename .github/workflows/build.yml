@@ -182,13 +182,13 @@ jobs:
           rm -rf msvc
       - name: Download MSVC 2017 specific version
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 15 --msvc-version 15.5
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 15 --msvc-version 15.9
           ./install.sh $(pwd)/msvc
           ./msvc/bin/x64/cl test/hello.c -Fehello.exe
           rm -rf msvc
       - name: Download MSVC 2019 specific version
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 16 --msvc-version 16.0
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 16 --msvc-version 16.9
           ./install.sh $(pwd)/msvc
           ./msvc/bin/x64/cl test/hello.c -Fehello.exe
           rm -rf msvc
