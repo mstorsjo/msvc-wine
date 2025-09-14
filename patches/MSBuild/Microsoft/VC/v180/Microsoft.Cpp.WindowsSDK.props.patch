@@ -15,9 +15,9 @@
 
 [PATCH] Look for the latest Windows SDK in the VS installation root in addition to the registry.
 
-diff --git a/MSBuild/Microsoft/VC/v170/Microsoft.Cpp.WindowsSDK.props b/MSBuild/Microsoft/VC/v170/Microsoft.Cpp.WindowsSDK.props
---- a/MSBuild/Microsoft/VC/v170/Microsoft.Cpp.WindowsSDK.props
-+++ b/MSBuild/Microsoft/VC/v170/Microsoft.Cpp.WindowsSDK.props
+diff --git a/MSBuild/Microsoft/VC/v180/Microsoft.Cpp.WindowsSDK.props b/MSBuild/Microsoft/VC/v180/Microsoft.Cpp.WindowsSDK.props
+--- a/MSBuild/Microsoft/VC/v180/Microsoft.Cpp.WindowsSDK.props
++++ b/MSBuild/Microsoft/VC/v180/Microsoft.Cpp.WindowsSDK.props
 @@ -119,7 +119,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
      <SDKVersion Condition="'$(SDKVersion)' == ''">10.0</SDKVersion>
      <SDKDisplayName Condition="'$(SDKDisplayName)' == ''">Windows 10</SDKDisplayName>
