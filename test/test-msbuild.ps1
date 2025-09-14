@@ -58,8 +58,8 @@ VerifyIncludes msbuild.log
 
 # CMake 3.23 and later supports portable VS instances, which are not known to the Visual Studio Installer.
 # CMake 3.31 or later is required if Visual Studio Installer is not installed on the system.
-EXEC "" cmake -DCMAKE_GENERATOR_INSTANCE="$Root,version=17.0.0.0" `
-    -G "Visual Studio 17 2022" -A "$Platform,version=10.0" `
+EXEC "" cmake -DCMAKE_GENERATOR_INSTANCE="$Root,version=18.0.0.0" `
+    -G "Visual Studio 18 2026" -A "$Platform,version=10.0" `
     -S "$TESTS" -B a
 
 EXEC "" cmake --build a --config RelWithDebInfo '--' `

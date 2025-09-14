@@ -62,7 +62,7 @@ def getArgsParser():
     parser = argparse.ArgumentParser(description = "Download and install Visual Studio")
     parser.add_argument("--manifest", metavar="manifest", help="A predownloaded manifest file")
     parser.add_argument("--save-manifest", const=True, action="store_const", help="Store the downloaded manifest to a file")
-    parser.add_argument("--major", default=17, type=int, metavar="version", help="The major version to download (defaults to 17)")
+    parser.add_argument("--major", default=18, type=int, metavar="version", help="The major version to download (defaults to 18)")
     parser.add_argument("--preview", const=True, action="store_const", help="Download the preview version instead of the release version")
     parser.add_argument("--cache", metavar="dir", help="Directory to use as a persistent cache for downloaded files")
     parser.add_argument("--dest", metavar="dir", help="Directory to install into")
@@ -925,7 +925,7 @@ if __name__ == "__main__":
             moveVCSDK(unpack, dest)
             if not args.keep_unpack:
                 shutil.rmtree(unpack)
-            if not args.skip_patch and args.major == 17: # Only apply patches to latest VS
+            if not args.skip_patch and args.major == 18: # Only apply patches to latest VS
                 patchPackages(dest)
     finally:
         if tempcache != None:

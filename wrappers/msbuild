@@ -32,8 +32,8 @@ export DisableRegistryUse=true
 #
 # These properties are used in various .props files found in `MSBuild/Microsoft/VC/v170`.
 export VCToolsVersion="$MSVCVER"
-export VCInstallDir_170="${MSVCBASE}\\"
-export VCToolsInstallDir_170="${MSVCDIR}\\"
+export VCInstallDir_180="${MSVCBASE}\\"
+export VCToolsInstallDir_180="${MSVCDIR}\\"
 
 export MicrosoftKitRoot="${BASE}\\"
 export SDKReferenceDirectoryRoot="$MicrosoftKitRoot"
