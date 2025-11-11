@@ -253,7 +253,10 @@ def lowercaseIgnores(args):
 
 def getManifest(args):
     if args.manifest == None:
-        type = "release"
+        if args.major < 18:
+            type = "release"
+        else:
+            type = "stable"
         if args.preview:
             if args.major < 18:
                 type = "pre"
