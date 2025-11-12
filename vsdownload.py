@@ -19,7 +19,6 @@ import functools
 import glob
 import hashlib
 import os
-import multiprocessing.pool
 import json
 import platform
 import re
@@ -31,6 +30,37 @@ import tempfile
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
+
+class ThreadPool:
+    def __init__(self, workers=None):
+        self._executor = ThreadPoolExecutor(max_workers=workers)
+
+    class _AsyncResult:
+        def __init__(self, fut):
+            self._fut = fut
+        def get(self, timeout=None):
+            return self._fut.result(timeout)
+        def wait(self, timeout=None):
+            self._fut.result(timeout)
+
+    def apply_async(self, func, args=(), kwds=None, callback=None):
+        fut = self._executor.submit(func, *(args or ()), **(kwds or {}))
+        if callback:
+            fut.add_done_callback(lambda f: callback(f.result()))
+        return self._AsyncResult(fut)
+
+    def map(self, func, iterable):
+        return list(self._executor.map(func, iterable))
+
+    def close(self):
+        pass
+
+    def join(self):
+        self._executor.shutdown(wait=True)
+
+    def terminate(self):
+        self._executor.shutdown(cancel_futures=True)
 
 def getArgsParser():
     class OptionalBoolean(argparse.Action):
@@ -573,7 +603,7 @@ def getPayloadName(payload):
     return name
 
 def downloadPackages(selected, cache, allowHashMismatch = False):
-    pool = multiprocessing.Pool(5)
+    pool = ThreadPool(5)
     tasks = []
     makedirs(cache)
     for p in selected:
