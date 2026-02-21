@@ -124,9 +124,11 @@ for arch in x86 x64 arm arm64; do
          || -d /opt/wine/mono ]]; then
         EXEC "" BIN=$BIN ./test-msbuild.sh
 
-        if [[ -n $HAVE_WDK && ($arch == "x64" || $arch == "arm64") ]]; then
-            EXEC "" BIN=$BIN ./test-wdk-msbuild.sh
-        fi
+        # Disable WDK test for now as it doesn't work on Visual Studio 2026.
+        # https://developercommunity.visualstudio.com/t/10973856
+        # if [[ -n $HAVE_WDK && ($arch == "x64" || $arch == "arm64") ]]; then
+        #     EXEC "" BIN=$BIN ./test-wdk-msbuild.sh
+        # fi
     fi
 done
 
