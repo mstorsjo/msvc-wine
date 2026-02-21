@@ -160,6 +160,9 @@ jobs:
   test-vsdownload-windows:
     runs-on: windows-latest
     steps:
+      - name: Install prerequisites
+        run: |
+          choco upgrade --no-progress cmake
       - uses: actions/checkout@v4
       - name: Download MSVC
         run: |
