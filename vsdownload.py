@@ -176,6 +176,9 @@ def setPackageSelection(args, packages):
             if getattr(args, "with_" + component) is None:
                 setattr(args, "with_" + component, args.with_default)
 
+    if args.preview and args.major >= 18 and args.msvc_version is None:
+        args.msvc_version = "preview"
+
     # If no packages are selected, install these versionless packages, which
     # gives the latest/recommended version for the current manifest.
 
