@@ -95,6 +95,7 @@ def getArgsParser():
     parser.add_argument("--with-dia", action=OptionalBoolean, help="Include DIA SDK (default)")
     parser.add_argument("--with-msbuild", action=OptionalBoolean, help="Include MSBuild (default)")
     parser.add_argument("--with-devcmd", action=OptionalBoolean, help="Include Visual Studio Developer Command Prompt (default)")
+    parser.add_argument("--with-llvm", action=OptionalBoolean, help="Include LLVM")
     parser.add_argument("--with-wdk-installers", metavar="dir", help="Install Windows Driver Kit using the provided MSI installers")
     parser.add_argument("--host-arch", metavar="arch", choices=["x86", "x64", "arm64"], help="Specify the host architecture of packages to install")
     parser.add_argument("--only-host", default=True, action=OptionalBoolean, help="Only download packages that match host arch")
@@ -357,6 +358,8 @@ def setPackageSelection(args, packages):
     appendPackageSelection(args, args.with_devcmd, "Microsoft.VisualStudio.VC.vcvars")
     appendPackageSelection(args, args.with_devcmd, "Microsoft.VisualStudio.PackageGroup.VsDevCmd")
     appendPackageSelection(args, args.with_workload, "Microsoft.VisualStudio.Workload.VCTools")
+    appendPackageSelection(args, args.with_llvm, "Microsoft.VisualStudio.VC.Llvm.Clang")
+    appendPackageSelection(args, args.with_llvm, "Microsoft.VisualStudio.VC.MSBuild.Llvm")
 
     if args.with_wdk_installers is not None:
         args.package.append("Component.Microsoft.Windows.DriverKit.BuildTools")
@@ -1091,6 +1094,15 @@ if __name__ == "__main__":
 
         if args.with_wdk_installers is not None:
             unpackWin10WDK(args.with_wdk_installers, unpack)
+
+        if args.only_host:
+            if args.host_arch in ["x64", "arm64"]:
+                shutil.rmtree(os.path.join(unpack, "VC", "Tools", "Llvm", "bin"), ignore_errors=True)
+                shutil.rmtree(os.path.join(unpack, "VC", "Tools", "Llvm", "lib"), ignore_errors=True)
+            if args.host_arch in ["x86", "x64"]:
+                shutil.rmtree(os.path.join(unpack, "VC", "Tools", "Llvm", "ARM64"), ignore_errors=True)
+            if args.host_arch in ["x86", "arm64"]:
+                shutil.rmtree(os.path.join(unpack, "VC", "Tools", "Llvm", "x64"), ignore_errors=True)
 
         if sys.platform != "win32":
             # Wine doesn't support dependentAssembly yet.
