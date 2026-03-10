@@ -48,12 +48,27 @@ ln_s VC vc
 ln_s Tools vc/tools
 ln_s MSVC vc/tools/msvc
 
+for i in $(ls -r vc/tools/msvc); do
+    dir="vc/tools/msvc/$i"
+    # Iterate over versions, from highest to lowest, picking the first one
+    # that seem to be complete enough (having bin, include and lib directories).
+    if [ -d $dir/bin ] && [ -d $dir/include ] && [ -d $dir/lib ]; then
+        MSVCVER="$i"
+        break
+    fi
+done
+if [ -z "$MSVCVER" ]; then
+    echo No suitable MSVC version found
+    exit 1
+fi
+echo Using MSVC version $MSVCVER
+
 # Add symlinks like LIBCMT.lib -> libcmt.lib. These are properly lowercased
 # out of the box, but MSVC produces directives like /DEFAULTLIB:"LIBCMT"
 # /DEFAULTLIB:"OLDNAMES", which lld-link doesn't find on a case sensitive
 # filesystem. Therefore add matching case symlinks for this, to allow
 # linking MSVC built objects with lld-link.
-cd $(echo vc/tools/msvc/* | awk '{print $1}')/lib
+cd "vc/tools/msvc/$MSVCVER/lib"
 for arch in x86 x64 arm arm64; do
     if [ ! -d "$arch" ]; then
         continue
@@ -169,9 +184,6 @@ if [ "$(uname -m)" = "aarch64" ]; then
     host=arm64
     dotnet_host=arm64
 fi
-
-MSVCVER=$(basename $(echo vc/tools/msvc/* | awk '{print $1}'))
-echo Using MSVC version $MSVCVER
 
 # Support `import std` for CMake.
 if [ -d "VC/Tools/MSVC/$MSVCVER/modules" ]; then
