@@ -566,7 +566,7 @@ def printPackageList(l):
         s = p["id"]
         if "type" in p:
             s = s + " (" + p["type"] + ")"
-        for k in ["chip", "machineArch", "productArch"]:
+        for k in ["version", "chip", "machineArch", "productArch"]:
             v = p.get(k)
             if v is not None:
                 s = s + " (" + k + "." + v + ")"
