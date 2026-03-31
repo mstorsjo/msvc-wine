@@ -40,4 +40,4 @@ export LIB="$MSVCDIR\\atlmfc\\lib\\$ARCH;$MSVCDIR\\lib\\$ARCH;$SDKLIB\\ucrt\\$AR
 export LIBPATH="$LIB"
 # "$MSVCDIR\\bin\\Hostx64\\x64" is included in PATH for DLLs.
 export WINEPATH="${BINDIR//\//\\};${SDKBINDIR//\//\\};$MSVCDIR\\bin\\Hostx64\\x64"
-export WINEDLLOVERRIDES="vcruntime140=n;vcruntime140_1=n"
+#export WINEDLLOVERRIDES="vcruntime140=n;vcruntime140_1=n"
