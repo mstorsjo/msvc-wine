@@ -74,15 +74,6 @@ else
     )
 fi
 
-case $OSTYPE in
-    darwin*)
-        CMAKE_ARGS+=(
-            # No winbind package available on macOS.
-            # https://github.com/mstorsjo/msvc-wine/issues/6
-            -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
-        ) ;;
-esac
-
 EXEC "" cmake -B a "${CMAKE_ARGS[@]}"
 EXEC "" cmake --build a --config Debug -- -v
 EXEC "" cmake --build a --config Release -- -v
