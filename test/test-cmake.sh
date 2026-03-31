@@ -27,15 +27,6 @@ CMAKE_ARGS=(
     -DCMAKE_SYSTEM_NAME=Windows
 )
 
-case $OSTYPE in
-    darwin*)
-        CMAKE_ARGS+=(
-            # No winbind package available on macOS.
-            # https://github.com/mstorsjo/msvc-wine/issues/6
-            -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
-        ) ;;
-esac
-
 EXEC "" CC=${BIN}cl CXX=${BIN}cl RC=${BIN}rc cmake -S"$TESTS" -GNinja "${CMAKE_ARGS[@]}"
 EXEC "" ninja -v
 
