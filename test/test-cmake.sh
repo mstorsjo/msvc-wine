@@ -47,7 +47,7 @@ EOF
 
 CMAKEDIR=$(. "${BIN}msvcenv.sh" && echo $CMAKEDIR)
 if [ -d "$CMAKEDIR" ]; then
-    EXEC "" ${BIN}cmake.exe -GNinja -S "$TESTS" -B win-ninja
+    EXEC "" WINEDEBUG=error+module ${BIN}cmake.exe -GNinja -S "$TESTS" -B win-ninja
     EXEC "" ${BIN}cmake.exe --build win-ninja -- -v
 fi
 
