@@ -442,6 +442,28 @@ def matchPackageTargetArch(p, archs):
 
     return True
 
+def matchPackageLanguage(p, lang):
+    l = p.get("language")
+    if l is None:
+        return True
+
+    l = l.lower()
+    # Some packages have neutral language, e.g. Microsoft.Build.
+    if l == "neutral":
+        return True
+    # After prioritizing on language, if English is the first candidate but
+    # the specified language is not English, it means the language cannot be found.
+    # In this case, keep the English package as fallback.
+    if l.startswith("en-"):
+        return True
+
+    lang = lang.lower()
+    countrylang = "-" in lang
+    if (countrylang and l == lang) or (not countrylang and l.startswith(lang + "-")):
+        return True
+
+    return False
+
 def printDepends(packages, target, constraints, indent, args):
     chipstr = ""
     for k in ["chip", "machineArch"]:
@@ -471,6 +493,9 @@ def printDepends(packages, target, constraints, indent, args):
             ignore = True
         elif not matchPackageTargetArch(p, args.architecture):
             ignorestr = " (TargetArchMismatch)"
+            ignore = True
+        elif not matchPackageLanguage(p, args.language):
+            ignorestr = " (LanguageMismatch)"
             ignore = True
     print(indent + target + chipstr + deptypestr + ignorestr)
     if ignore:
@@ -508,6 +533,9 @@ def getPackageKey(p):
     packagekey = p["id"]
     if "version" in p:
         packagekey = packagekey + "-" + p["version"]
+    lang = p.get("language")
+    if lang is not None and lang != "neutral":
+        packagekey = packagekey + "-" + lang
     for k in ["chip", "machineArch", "productArch"]:
         v = p.get(k)
         if v is not None:
@@ -523,6 +551,8 @@ def aggregateDepends(packages, included, target, constraints, args):
     if args.only_host and not matchPackageHostArch(p, args.host_arch):
         return []
     if not matchPackageTargetArch(p, args.architecture):
+        return []
+    if not matchPackageLanguage(p, args.language):
         return []
     packagekey = getPackageKey(p)
     if packagekey in included:
