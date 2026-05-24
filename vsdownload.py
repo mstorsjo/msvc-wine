@@ -844,10 +844,11 @@ def unpackWin10SDK(src, payloads, dest):
             if sys.platform == "win32":
                 # The path to TARGETDIR need to be quoted in the case of spaces.
                 cmd = "msiexec /a \"%s\" /qn TARGETDIR=\"%s\"" % (srcfile, os.path.abspath(dest))
+                with open(os.path.join(dest, "WinSDK-" + getPayloadName(payload) + "-listing.txt"), "w") as log:
+                    subprocess.check_call(cmd, stdout=log)
             else:
-                cmd = ["msiextract", "-C", dest, srcfile]
-            with open(os.path.join(dest, "WinSDK-" + getPayloadName(payload) + "-listing.txt"), "w") as log:
-                subprocess.check_call(cmd, stdout=log)
+                with open(os.path.join(dest, "WinSDK-" + getPayloadName(payload) + "-listing.txt"), "w") as log:
+                    extractMsi(srcfile, dest, log)
 
 def unpackWin10WDK(src, dest):
     print("Unpacking WDK installers from", src)
