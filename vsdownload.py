@@ -861,11 +861,9 @@ def unpackWin10WDK(src, dest):
 
         # Do not try to run msiexec here because TARGETDIR
         # does not work with WDK installers.
-        cmd = ["msiextract", "-C", dest, srcfile]
-
         payloadName, _ = os.path.splitext(name)
         with open(os.path.join(dest, "WDK-" + payloadName + "-listing.txt"), "w") as log:
-            subprocess.check_call(cmd, stdout=log)
+            extractMsi(srcfile, dest, log)
 
     # WDK includes a VS extension, unpack it before copying the extracted files.
     for vsix in glob.glob(dest + "/**/WDK.vsix", recursive=True):
