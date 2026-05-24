@@ -32,6 +32,53 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
 
+_has_pymsi = None
+
+def extractMsi(srcfile, dest, log=None):
+    global _has_pymsi
+    if _has_pymsi is None:
+        try:
+            import pymsi
+            _has_pymsi = True
+        except ImportError:
+            _has_pymsi = False
+            print("Note: pip install python-msi for more reliable MSI extraction, falling back to msiextract")
+    if _has_pymsi:
+        from pathlib import Path
+        from pymsi import Msi
+        from pymsi.package import Package
+        destpath = Path(dest)
+        p = Package(Path(srcfile))
+        msi = Msi(p, load_data=True, strict=False)
+        _extractMsiDir(msi.root, destpath, destpath, log)
+    else:
+        cmd = ["msiextract", "-C", dest, srcfile]
+        subprocess.check_call(cmd, stdout=log)
+
+def _extractMsiDir(node, output, root, log=None, is_root=True):
+    output.mkdir(parents=True, exist_ok=True)
+    for comp in node.components.values():
+        for f in comp.files.values():
+            if f.media is None:
+                continue
+            try:
+                cab_file = f.resolve()
+            except ValueError:
+                continue
+            try:
+                data = cab_file.decompress()
+            except (RuntimeError, NotImplementedError):
+                continue
+            filepath = output / f.name
+            filepath.write_bytes(data)
+            if log:
+                log.write(str(filepath.relative_to(root)) + "\n")
+    for child in node.children.values():
+        name = child.name
+        if is_root and "." in child.id:
+            name = child.id.split(".", 1)[0]
+        _extractMsiDir(child, output / name, root, log, False)
+
 def getArgsParser():
     class OptionalBoolean(argparse.Action):
         def __init__(self,
@@ -797,10 +844,11 @@ def unpackWin10SDK(src, payloads, dest):
             if sys.platform == "win32":
                 # The path to TARGETDIR need to be quoted in the case of spaces.
                 cmd = "msiexec /a \"%s\" /qn TARGETDIR=\"%s\"" % (srcfile, os.path.abspath(dest))
+                with open(os.path.join(dest, "WinSDK-" + getPayloadName(payload) + "-listing.txt"), "w") as log:
+                    subprocess.check_call(cmd, stdout=log)
             else:
-                cmd = ["msiextract", "-C", dest, srcfile]
-            with open(os.path.join(dest, "WinSDK-" + getPayloadName(payload) + "-listing.txt"), "w") as log:
-                subprocess.check_call(cmd, stdout=log)
+                with open(os.path.join(dest, "WinSDK-" + getPayloadName(payload) + "-listing.txt"), "w") as log:
+                    extractMsi(srcfile, dest, log)
 
 def unpackWin10WDK(src, dest):
     print("Unpacking WDK installers from", src)
@@ -813,11 +861,9 @@ def unpackWin10WDK(src, dest):
 
         # Do not try to run msiexec here because TARGETDIR
         # does not work with WDK installers.
-        cmd = ["msiextract", "-C", dest, srcfile]
-
         payloadName, _ = os.path.splitext(name)
         with open(os.path.join(dest, "WDK-" + payloadName + "-listing.txt"), "w") as log:
-            subprocess.check_call(cmd, stdout=log)
+            extractMsi(srcfile, dest, log)
 
     # WDK includes a VS extension, unpack it before copying the extracted files.
     for vsix in glob.glob(dest + "/**/WDK.vsix", recursive=True):
