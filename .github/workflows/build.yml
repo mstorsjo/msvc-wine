@@ -21,8 +21,8 @@ jobs:
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
           # Check https://gitlab.winehq.org/wine/wine/-/wikis/Wine-Mono#versions before updating the WINE package!
-          curl -s -L -O https://github.com/madewokherd/wine-mono/releases/download/wine-mono-8.1.0/wine-mono-8.1.0-x86.msi
-          $WINE msiexec /i wine-mono-8.1.0-x86.msi
+          curl -s -L -O https://github.com/wine-mono/wine-mono/releases/download/wine-mono-9.4.0/wine-mono-9.4.0-x86.msi
+          $WINE msiexec /i wine-mono-9.4.0-x86.msi
       - uses: actions/checkout@v6
       - name: Download MSVC
         run: |
