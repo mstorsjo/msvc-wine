@@ -172,6 +172,9 @@ def setPackageSelection(args, packages):
             if getattr(args, "with_" + component) is None:
                 setattr(args, "with_" + component, args.with_default)
 
+    if args.preview and args.major >= 18 and args.msvc_version is None:
+        args.msvc_version = "preview"
+
     # If no packages are selected, install these versionless packages, which
     # gives the latest/recommended version for the current manifest.
 
@@ -199,7 +202,7 @@ def setPackageSelection(args, packages):
     # Note, that in the manifest for MSVC version X.Y, only version X.Y-1
     # exists with a package name like "Microsoft.VisualStudio.Component.VC."
     # + toolversion + ".x86.x64".
-    if args.msvc_version is None:
+    if args.msvc_version is None or args.msvc_version == "latest":
         args.package.extend(defaultPackages)
         args.ignore.extend(defaultIgnores)
     elif args.msvc_version == "preview":
