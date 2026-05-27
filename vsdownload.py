@@ -329,6 +329,7 @@ def setPackageSelection(args, packages):
     appendPackageSelection(args, args.with_dia, "Microsoft.VisualCpp.DIA.SDK")
     appendPackageSelection(args, args.with_msbuild, "Microsoft.Build")
     appendPackageSelection(args, args.with_msbuild, "Microsoft.Build.Dependencies")
+    appendPackageSelection(args, args.with_devcmd, "Microsoft.VisualCpp.Tools.Core.x86")
     appendPackageSelection(args, args.with_devcmd, "Microsoft.VisualStudio.VC.vcvars")
     appendPackageSelection(args, args.with_devcmd, "Microsoft.VisualStudio.PackageGroup.VsDevCmd")
 
