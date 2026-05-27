@@ -8,7 +8,23 @@ env:
   WDK_INSTALLER_URL: "https://go.microsoft.com/fwlink/?linkid=2307500"
 
 jobs:
+  populate-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache vsdownload packages
+        uses: actions/cache@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
+      - name: Populate vsdownload cache
+        run: |
+          sudo apt-get update && sudo apt-get install -y python3 msitools
+          ./vsdownload.py --accept-license --only-download --cache ~/.cache/vsdownload
+
   test-msvc-wine-linux:
+    needs: populate-cache
     # Using a pinned version of Ubuntu here; this determines the version of
     # Wine that gets installed - the version of wine-mono that is installed
     # below depends on the host version of Wine.
@@ -24,11 +40,19 @@ jobs:
           curl -s -L -O https://github.com/wine-mono/wine-mono/releases/download/wine-mono-9.4.0/wine-mono-9.4.0-x86.msi
           $WINE msiexec /i wine-mono-9.4.0-x86.msi
       - uses: actions/checkout@v6
+      - name: Set up vsdownload cache
+        run: mkdir -p ~/.cache/vsdownload
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          WDK_INSTALLERS=$(./wdk-download.sh --cache /var/tmp/msvc-wine "$WDK_INSTALLER_URL")
+          WDK_INSTALLERS=$(./wdk-download.sh --cache ~/.cache/vsdownload "$WDK_INSTALLER_URL")
           echo Downloaded WDK installers to $WDK_INSTALLERS
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache /var/tmp/msvc-wine --with-wdk-installers "$WDK_INSTALLERS"
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --with-wdk-installers "$WDK_INSTALLERS"
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
@@ -37,6 +61,7 @@ jobs:
       # the installed files aren't redistributable!
 
   test-msvc-wine-linux-arm:
+    needs: populate-cache
     runs-on: ubuntu-26.04-arm
     # Use a custom base container for providing wine; the base Wine package
     # in Ubuntu 24.04 is broken on aarch64, see
@@ -52,9 +77,17 @@ jobs:
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
       - uses: actions/checkout@v6
+      - name: Set up vsdownload cache
+        run: mkdir -p ~/.cache/vsdownload
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
@@ -63,6 +96,7 @@ jobs:
       # the installed files aren't redistributable!
 
   test-msvc-wine-linux-arm-target-host-only:
+    needs: populate-cache
     runs-on: ubuntu-26.04-arm
     # Use a custom base container for providing wine; the base Wine package
     # in Ubuntu 24.04 is broken on aarch64, see
@@ -78,9 +112,17 @@ jobs:
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
       - uses: actions/checkout@v6
+      - name: Set up vsdownload cache
+        run: mkdir -p ~/.cache/vsdownload
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --architecture host --dest $(pwd)/msvc
+          ./vsdownload.py --accept-license --architecture host --dest $(pwd)/msvc --cache ~/.cache/vsdownload
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
@@ -89,6 +131,7 @@ jobs:
       # the installed files aren't redistributable!
 
   test-msvc-wine-macos:
+    needs: populate-cache
     runs-on: macos-latest
     steps:
       - name: Install prerequisites
@@ -97,9 +140,15 @@ jobs:
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
       - uses: actions/checkout@v6
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/Library/Caches/vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/Library/Caches/vsdownload
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
@@ -108,6 +157,7 @@ jobs:
       # the installed files aren't redistributable!
 
   test-clang-lld:
+    needs: populate-cache
     # Ubuntu 22.04 comes with Clang/LLD 14; at least 13 is required for providing
     # __guard_eh_cont_table and __guard_eh_cont_count which are required with
     # MSVC 2019 16.8 or newer.
@@ -129,9 +179,17 @@ jobs:
               sudo ln -s /usr/bin/lld /usr/bin/lld-link
           fi
       - uses: actions/checkout@v6
+      - name: Set up vsdownload cache
+        run: mkdir -p ~/.cache/vsdownload
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload
           ./install.sh $(pwd)/msvc
       - name: Test using the installed tools
         run: |
@@ -156,42 +214,64 @@ jobs:
       # the installed files aren't redistributable!
 
   test-vsdownload-windows:
+    needs: populate-cache
     runs-on: windows-latest
     steps:
       - name: Install prerequisites
         run: |
           choco upgrade --no-progress cmake
       - uses: actions/checkout@v6
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~\AppData\Local\vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          python vsdownload.py --accept-license --dest c:/msvc
+          python vsdownload.py --accept-license --dest c:/msvc --cache "$env:LOCALAPPDATA\vsdownload"
       - name: Test using the installed tools
         run: |
           test\test.bat c:\msvc
 
   test-vsdownload-windows-arm:
+    needs: populate-cache
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v6
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~\AppData\Local\vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          python vsdownload.py --accept-license --dest c:/msvc
+          python vsdownload.py --accept-license --dest c:/msvc --cache "$env:LOCALAPPDATA\vsdownload"
       - name: Test using the installed tools
         run: |
           test\test.bat c:\msvc
 
   test-vsdownload-windows-arm-target-host-only:
+    needs: populate-cache
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v6
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~\AppData\Local\vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          python vsdownload.py --accept-license --architecture host --dest c:/msvc
+          python vsdownload.py --accept-license --architecture host --dest c:/msvc --cache "$env:LOCALAPPDATA\vsdownload"
       - name: Test using the installed tools
         run: |
           test\test.bat c:\msvc
 
   test-msvc-wine-versions:
+    needs: populate-cache
     runs-on: ubuntu-latest
     steps:
       - name: Install prerequisites
@@ -201,39 +281,47 @@ jobs:
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
       - uses: actions/checkout@v6
+      - name: Set up vsdownload cache
+        run: mkdir -p ~/.cache/vsdownload
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
       - name: Download MSVC 2017 latest
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 15
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --major 15
           ./install.sh $(pwd)/msvc
           ./msvc/bin/x64/cl test/hello.c -Fehello.exe
           rm -rf msvc
       - name: Download MSVC 2019 latest
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 16
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --major 16
           ./install.sh $(pwd)/msvc
           ./msvc/bin/x64/cl test/hello.c -Fehello.exe
           rm -rf msvc
       - name: Download MSVC 2017 specific version
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 15 --msvc-version 15.9
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --major 15 --msvc-version 15.9
           ./install.sh $(pwd)/msvc
           ./msvc/bin/x64/cl test/hello.c -Fehello.exe
           rm -rf msvc
       - name: Download MSVC 2019 specific version
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 16 --msvc-version 16.9
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --major 16 --msvc-version 16.9
           ./install.sh $(pwd)/msvc
           ./msvc/bin/x64/cl test/hello.c -Fehello.exe
           rm -rf msvc
       - name: Download MSVC 2022 specific version
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 17 --msvc-version 17.0
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --major 17 --msvc-version 17.0
           ./install.sh $(pwd)/msvc
           ./msvc/bin/x64/cl test/hello.c -Fehello.exe
           rm -rf msvc
       - name: Download MSVC 2022 with non-default SDK
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --major 17 --sdk-version 10.0.26100
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --major 17 --sdk-version 10.0.26100
           ./install.sh $(pwd)/msvc
           ./msvc/bin/x64/cl test/hello.c -Fehello.exe
           rm -rf msvc

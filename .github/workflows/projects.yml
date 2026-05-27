@@ -10,7 +10,23 @@ on:
       - 'lowercase'
 
 jobs:
+  populate-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache vsdownload packages
+        uses: actions/cache@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
+      - name: Populate vsdownload cache
+        run: |
+          sudo apt-get update && sudo apt-get install -y python3 msitools
+          ./vsdownload.py --accept-license --only-download --cache ~/.cache/vsdownload
+
   test-build-dav1d:
+    needs: populate-cache
     runs-on: ubuntu-latest
     steps:
       - name: Install prerequisites
@@ -19,9 +35,17 @@ jobs:
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
       - uses: actions/checkout@v6
+      - name: Set up vsdownload cache
+        run: mkdir -p ~/.cache/vsdownload
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --architecture arm64
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --architecture arm64
           ./install.sh $(pwd)/msvc
       - name: Checkout gas-preprocessor
         uses: actions/checkout@v6
@@ -75,6 +99,7 @@ jobs:
           retention-days: 7
 
   test-build-ffmpeg:
+    needs: populate-cache
     runs-on: ubuntu-latest
     steps:
       - name: Install prerequisites
@@ -83,9 +108,17 @@ jobs:
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
       - uses: actions/checkout@v6
+      - name: Set up vsdownload cache
+        run: mkdir -p ~/.cache/vsdownload
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --architecture arm64
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --architecture arm64
           ./install.sh $(pwd)/msvc
       - name: Checkout gas-preprocessor
         uses: actions/checkout@v6
@@ -120,6 +153,7 @@ jobs:
           retention-days: 7
 
   test-build-llvm:
+    needs: populate-cache
     runs-on: ubuntu-latest
     steps:
       - name: Install prerequisites
@@ -128,9 +162,17 @@ jobs:
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
       - uses: actions/checkout@v6
+      - name: Set up vsdownload cache
+        run: mkdir -p ~/.cache/vsdownload
+      - name: Cache vsdownload packages
+        uses: actions/cache/restore@v5
+        with:
+          enableCrossOsArchive: true
+          path: ~/.cache/vsdownload
+          key: vsdownload
       - name: Download MSVC
         run: |
-          ./vsdownload.py --accept-license --dest $(pwd)/msvc --architecture x64
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc --cache ~/.cache/vsdownload --architecture x64
           ./install.sh $(pwd)/msvc
       - name: Checkout llvm-project
         uses: actions/checkout@v6
