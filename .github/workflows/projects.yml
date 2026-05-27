@@ -67,7 +67,7 @@ jobs:
           cp ../../msvc/vc/Redist/MSVC/1*/arm64/*.CRT/vcruntime*.dll ../../install/bin
       # The build output from MSVC actually is redistributable, even if the
       # toolchain itself isn't.
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: dav1d
           path: |
@@ -112,7 +112,7 @@ jobs:
           make install
       # The build output from MSVC actually is redistributable, even if the
       # toolchain itself isn't.
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: ffmpeg
           path: |
@@ -163,7 +163,7 @@ jobs:
           cp ../../../msvc/vc/Redist/MSVC/1*/x64/*.CRT/vcruntime*.dll ../../../install/bin
       # The build output from MSVC actually is redistributable, even if the
       # toolchain itself isn't.
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: llvm
           path: |
