@@ -85,7 +85,7 @@ def getArgsParser():
     parser.add_argument("--sdk-version", metavar="version", help="Install a specific Windows SDK version")
     parser.add_argument("--architecture", metavar="arch", choices=["host", "x86", "x64", "arm", "arm64"], help="Target architectures to include (defaults to all)", nargs="+")
     parser.add_argument("--with-default", action=OptionalBoolean, help="Include default packages, true if no package specified")
-    parser.add_argument("--with-workload", action=OptionalBoolean, help="Include VC tools workload (default)")
+    parser.add_argument("--with-workload", action=OptionalBoolean, help="Include VC tools workload")
     parser.add_argument("--with-msvc", action=OptionalBoolean, help="Include MSVC build tools (default)")
     parser.add_argument("--with-asan", action=OptionalBoolean, help="Include ASAN runtime (default)")
     parser.add_argument("--with-sdk", action=OptionalBoolean, help="Include Windows SDK (default)")
@@ -168,7 +168,7 @@ def setPackageSelection(args, packages):
             args.with_default = True
 
     if args.with_default is not None:
-        for component in ["workload", "msvc", "asan", "sdk", "atl", "dia", "msbuild", "devcmd"]:
+        for component in ["msvc", "asan", "sdk", "atl", "dia", "msbuild", "devcmd"]:
             if getattr(args, "with_" + component) is None:
                 setattr(args, "with_" + component, args.with_default)
 
@@ -179,8 +179,6 @@ def setPackageSelection(args, packages):
     # fill in data in defaultPackages and defaultIgnores.
     defaultPackages, args.package = args.package, []
     defaultIgnores, args.ignore = args.ignore, []
-
-    appendPackageSelection(args, args.with_workload, "Microsoft.VisualStudio.Workload.VCTools")
 
     if "x86" in args.architecture or "x64" in args.architecture:
         appendPackageSelection(args, args.with_msvc, "Microsoft.VisualStudio.Component.VC.Tools.x86.x64")
@@ -277,6 +275,13 @@ def setPackageSelection(args, packages):
         print("Unsupported MSVC toolchain version " + args.msvc_version)
         sys.exit(1)
 
+    if args.with_msvc:
+        # The package is used by both MSBuild and VsDevCmd.
+        # Latest ARM64-only toolchain lacks the dependency.
+        # VC/Auxiliary/Build/Microsoft.VCRedistVersion.default.props
+        # VC/Auxiliary/Build/Microsoft.VCRedistVersion.default.txt
+        args.package.append("Microsoft.VisualCpp.Servicing.Redist")
+
     if args.with_sdk is None:
         pass
     elif not args.with_sdk:
@@ -331,6 +336,7 @@ def setPackageSelection(args, packages):
     appendPackageSelection(args, args.with_msbuild, "Microsoft.Build.Dependencies")
     appendPackageSelection(args, args.with_devcmd, "Microsoft.VisualStudio.VC.vcvars")
     appendPackageSelection(args, args.with_devcmd, "Microsoft.VisualStudio.PackageGroup.VsDevCmd")
+    appendPackageSelection(args, args.with_workload, "Microsoft.VisualStudio.Workload.VCTools")
 
     if args.with_wdk_installers is not None:
         args.package.append("Component.Microsoft.Windows.DriverKit.BuildTools")
