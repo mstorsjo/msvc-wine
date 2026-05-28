@@ -277,6 +277,13 @@ def setPackageSelection(args, packages):
         print("Unsupported MSVC toolchain version " + args.msvc_version)
         sys.exit(1)
 
+    if args.with_msvc:
+        # The package is used by both MSBuild and VsDevCmd.
+        # Latest ARM64-only toolchain lacks the dependency.
+        # VC/Auxiliary/Build/Microsoft.VCRedistVersion.default.props
+        # VC/Auxiliary/Build/Microsoft.VCRedistVersion.default.txt
+        args.package.append("Microsoft.VisualCpp.Servicing.Redist")
+
     if args.with_sdk is None:
         pass
     elif not args.with_sdk:
