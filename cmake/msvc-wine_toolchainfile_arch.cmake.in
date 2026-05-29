@@ -1,0 +1,5 @@
+# This file is Public Domain, do as you please
+
+set(CMAKE_SYSTEM_PROCESSOR @ARCH@)
+
+include("${CMAKE_CURRENT_LIST_DIR}/msvc-wine_toolchainfile.cmake")
