@@ -60,27 +60,16 @@ CMAKE_ARGS=(
     -G"Ninja Multi-Config"
     -DCMAKE_C_COMPILER=${BIN}cl
     -DCMAKE_CXX_COMPILER=${BIN}cl
+    -DCMAKE_RC_COMPILER=${BIN}rc
     -DCMAKE_SYSTEM_NAME=Windows
     -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
     -DVCPKG_TARGET_TRIPLET=$ARCH-windows
 )
 
-# Vcpkg uses pwsh and dumpbin to copy dependencies into the output directory for executables.
-if command -v pwsh &>/dev/null; then
-    export PATH=${BIN}:$PATH
-else
-    CMAKE_ARGS+=(
-        -DVCPKG_APPLOCAL_DEPS=OFF
-    )
-fi
-
 EXEC "" cmake -B a "${CMAKE_ARGS[@]}"
 EXEC "" cmake --build a --config Debug -- -v
 EXEC "" cmake --build a --config Release -- -v
-
-if command -v pwsh &>/dev/null; then
-    EXEC "" file -E a/{Debug,Release}/sqlite3.dll
-fi
+EXEC "" file -E a/{Debug,Release}/sqlite3.dll
 
 
 # Create project manifest file and configuration file.
@@ -102,10 +91,7 @@ EXEC "" file -E b/vcpkg_installed/$ARCH-windows/{,debug/}bin/sqlite3.{dll,pdb}
 
 EXEC "" cmake --build b --config Debug -- -v
 EXEC "" cmake --build b --config Release -- -v
-
-if command -v pwsh &>/dev/null; then
-    EXEC "" file -E b/{Debug,Release}/sqlite3.dll
-fi
+EXEC "" file -E b/{Debug,Release}/sqlite3.dll
 
 
 EXIT
