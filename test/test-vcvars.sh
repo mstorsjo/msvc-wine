@@ -17,8 +17,10 @@
 . "${0%/*}/test.sh"
 
 host=x64
-if [ "$(uname -m)" = "aarch64" ]; then
-    host=arm64
+if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+    if [ "$(uname -s)" != "Darwin" ]; then
+        host=arm64
+    fi
 fi
 
 BASE=$(. "${BIN}msvcenv.sh" && echo $BASE)

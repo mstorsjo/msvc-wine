@@ -180,9 +180,11 @@ done
 host=x64
 # .NET-based tools use different host arch directories
 dotnet_host=amd64
-if [ "$(uname -m)" = "aarch64" ]; then
-    host=arm64
-    dotnet_host=arm64
+if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+    if [ "$(uname -s)" != "Darwin" ]; then
+        host=arm64
+        dotnet_host=arm64
+    fi
 fi
 
 # Support `import std` for CMake.
