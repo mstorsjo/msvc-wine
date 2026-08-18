@@ -926,6 +926,14 @@ if __name__ == "__main__":
     parser = getArgsParser()
     args = parser.parse_args()
 
+    if sys.platform != "win32" and not shutil.which("msiextract"):
+        print("Error: 'msiextract' (part of msitools) is required but not found in PATH.")
+        if platform.system() == "Darwin":
+            print("On macOS, you can install it via: brew install msitools")
+        else:
+            print("On Debian/Ubuntu, you can install it via: apt-get install msitools")
+        sys.exit(1)
+
     socket.setdefaulttimeout(15)
 
     if args.host_arch is None:
