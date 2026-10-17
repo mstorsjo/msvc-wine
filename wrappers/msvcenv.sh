@@ -22,7 +22,7 @@ BASE_UNIX=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
 if [ ! -d "$BASE_UNIX/vc" ]; then
     BASE_UNIX=$(cd "$BASE_UNIX"/.. && pwd)
 fi
-BASE=z:${BASE_UNIX//\//\\}
+BASE=$(winepath -w "$BASE_UNIX")
 MSVCVER=14.13.26128
 SDKVER=10.0.16299.0
 ARCH=x86
