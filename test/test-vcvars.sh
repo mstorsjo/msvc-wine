@@ -101,7 +101,7 @@ TestRealPath() {
     return 0
 }
 
-EXEC "" WINEDEBUG=-all $(command -v wine64 || command -v wine) cmd /c test-$vcvars_arch.bat || EXIT
+EXEC "" $(command -v wine64 || command -v wine) cmd /c test-$vcvars_arch.bat || EXIT
 tr -d '\r' <$vcvars_arch-env.txt >$vcvars_arch-env
 . $vcvars_arch-env
 
