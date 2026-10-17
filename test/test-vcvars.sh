@@ -95,7 +95,7 @@ TestVariable() {
 
 TestRealPath() {
     if [ "$(readlink -f "${!1}")" != "$(readlink -f "$2")" ]; then
-        echo "ERROR: $1=\"${!1}\""
+        echo -e "ERROR:\n  Expected: $1=\"${!1}\"\n  Actual: $1=\"$2\""
         return 1
     fi
     return 0
