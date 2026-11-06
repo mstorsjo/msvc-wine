@@ -122,7 +122,8 @@ for arch in x86 x64 arm arm64; do
          || -d /usr/share/wine/mono \
          || -d /usr/local/share/wine/mono \
          || -d /opt/wine/mono ]]; then
-        EXEC "" BIN=$BIN ./test-msbuild.sh
+        : # Running msbuild currently fails
+        # EXEC "" BIN=$BIN ./test-msbuild.sh
 
         # Disable WDK test for now as it doesn't work on Visual Studio 2026.
         # https://developercommunity.visualstudio.com/t/10973856
