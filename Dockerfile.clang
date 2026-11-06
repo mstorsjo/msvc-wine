@@ -1,28 +1,22 @@
+# syntax=docker/dockerfile:1
 ARG BASE=msvc-wine
 FROM $BASE
 
-RUN apt-get update && \
-    apt-get install -y curl xz-utils && \
-    apt-get clean -y && \
-    rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt update && apt-get --no-install-recommends install -y \
+    clang \
+    clang-tools \
+    lld
 
-# Newer versions of Ubuntu also provide a new enough version of Clang/lld
-# to work with MSVC 2022 headers/libs, but clang-cl is only available with
-# a version suffix, like "clang-cl-14" anyway.
-RUN curl -LO https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz && \
-    tar -Jxf clang+llvm*.tar.xz && \
-    rm clang+llvm*.tar.xz && \
-    mv clang+llvm* /opt/clang
-
-ENV PATH=/opt/clang/bin:$PATH
-
-COPY test/hello.c ./
+COPY --link test/hello.c ./
 
 RUN \
+    clang_cl="$(find /usr/bin -regextype posix-extended -regex '.*/clang-cl(-[0-9]+)?$' -printf '%f\n' | sort -V | tail -n1)"; \
     for arch in x86 x64 arm arm64; do \
         [ ! -d /opt/msvc/kits/10/lib/*/um/$arch ] || \
         (BIN=/opt/msvc/bin/$arch . /opt/msvc/msvcenv-native.sh && \
-            clang-cl --target=$TARGET_TRIPLE hello.c -fuse-ld=lld -Fehello-$arch.exe && \
+            "$clang_cl" --target=$TARGET_TRIPLE hello.c -fuse-ld=lld -Fehello-$arch.exe && \
             clang --target=$TARGET_TRIPLE hello.c -fuse-ld=lld -o hello-$arch.exe \
         ) || exit 1; \
     done

@@ -1,10 +1,11 @@
+# syntax=docker/dockerfile:1
 ARG BASE=msvc-wine
 FROM $BASE
 
-COPY test/hello.c ./
+COPY --link test/hello.c ./
 
 RUN \
-    wineserver -p && \
+    "$(command -v wineserver || find /usr/lib -path '*/wine/wineserver' -type f | head -n1)" -p && \
     $(command -v wine64 || command -v wine || false) wineboot && \
     for arch in x86 x64 arm arm64; do \
         [ ! -d /opt/msvc/kits/10/lib/*/um/$arch ] || \
