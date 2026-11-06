@@ -93,7 +93,9 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          brew install wine-stable msitools meson
+          brew install msitools meson
+          brew trust josephalton/other-cask-tap
+          brew install --cask josephalton/other-cask-tap/other-wine-stable
           WINE=$(command -v wine64 || command -v wine || false)
           $WINE wineboot
       - uses: actions/checkout@v6
