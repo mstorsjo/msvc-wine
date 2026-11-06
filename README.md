@@ -28,7 +28,8 @@ To install, just run the following two commands:
     ./install.sh <dir>
 
 The unpacking requires recent versions of msitools (0.98) and libgcab
-(1.2); sufficiently new versions are available in e.g. Ubuntu 19.04.
+(1.2); sufficiently new versions are available in e.g. Ubuntu 19.04. On macOS,
+you can install the prerequisites via Homebrew: `brew install wine-stable msitools meson`.
 
 After installing the toolchain this way, there are 4 directories with tools,
 in `<dest>/bin/<arch>`, for all architectures out of `x86`,
@@ -88,9 +89,13 @@ To use clang/lld with MSVC/WinSDK headers provided by msvc-wine, first download 
 as usual. You need less prerequisites as wine won't be needed:
 
 ```bash
+# On Debian/Ubuntu:
 apt-get update
 apt-get install -y python3 msitools ca-certificates
 
+# On macOS, Apple Clang does not include clang-cl or lld-link. 
+# You must install LLVM via Homebrew: brew install msitools llvm
+```
 # Download and unpack MSVC
 ./vsdownload.py --dest ~/my_msvc
 # Clean up headers, add scripts for setting up the environments
