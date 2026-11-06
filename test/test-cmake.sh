@@ -17,7 +17,7 @@
 . "${0%/*}/test.sh"
 
 
-MSVCDIR=$(. "${BIN}msvcenv.sh" && echo $MSVCDIR)
+MSVCDIR=$(. "${BIN}msvcenv.sh" && echo $MSVCDIR_UNIX)
 MSVCDIR=${MSVCDIR//\\//}
 MSVCDIR=${MSVCDIR#z:}
 

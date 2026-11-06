@@ -95,36 +95,36 @@ TestVariable() {
 
 TestRealPath() {
     if [ "$(readlink -f "${!1}")" != "$(readlink -f "$2")" ]; then
-        echo "ERROR: $1=\"${!1}\""
+        echo -e "ERROR:\n  Expected: $1=\"${!1}\"\n  Actual: $1=\"$2\""
         return 1
     fi
     return 0
 }
 
-EXEC "" WINEDEBUG=-all $(command -v wine64 || command -v wine) cmd /c test-$vcvars_arch.bat || EXIT
+EXEC "" $(command -v wine64 || command -v wine) cmd /c test-$vcvars_arch.bat || EXIT
 tr -d '\r' <$vcvars_arch-env.txt >$vcvars_arch-env
 . $vcvars_arch-env
 
-SDKBASE=$(. "${BIN}msvcenv.sh" && echo $SDKBASE)
-SDKBASE=${SDKBASE//\\//}
-SDKBASE=${SDKBASE#z:}
+SDKBASE=$(. "${BIN}msvcenv.sh" && echo "$SDKBASE_UNIX")
+SDKBASE="${SDKBASE//\\//}"
+SDKBASE="${SDKBASE#z:}"
 
-MSVCDIR=$(. "${BIN}msvcenv.sh" && echo $MSVCDIR)
-MSVCDIR=${MSVCDIR//\\//}
-MSVCDIR=${MSVCDIR#z:}
+MSVCDIR=$(. "${BIN}msvcenv.sh" && echo "$MSVCDIR_UNIX")
+MSVCDIR="${MSVCDIR//\\//}"
+MSVCDIR="${MSVCDIR#z:}"
 
-EXEC "" TestRealPath VSINSTALLDIR       $(. "${BIN}msvcenv.sh" && echo $BASE_UNIX)
-EXEC "" TestRealPath VCToolsInstallDir  $MSVCDIR
-EXEC "" TestRealPath WindowsSdkDir      $SDKBASE
-EXEC "" TestVariable WindowsSDKVersion  $(. "${BIN}msvcenv.sh" && echo $SDKVER)
-EXEC "" TestRealPath UniversalCRTSdkDir $SDKBASE
-EXEC "" TestVariable UCRTVersion        $(. "${BIN}msvcenv.sh" && echo $SDKVER)
+EXEC "" TestRealPath VSINSTALLDIR       "$(. "${BIN}msvcenv.sh" && echo "$BASE_UNIX")"
+EXEC "" TestRealPath VCToolsInstallDir  "$MSVCDIR"
+EXEC "" TestRealPath WindowsSdkDir      "$SDKBASE"
+EXEC "" TestVariable WindowsSDKVersion  "$(. "${BIN}msvcenv.sh" && echo "$SDKVER")"
+EXEC "" TestRealPath UniversalCRTSdkDir "$SDKBASE"
+EXEC "" TestVariable UCRTVersion        "$(. "${BIN}msvcenv.sh" && echo "$SDKVER")"
 
 # Below tests require where.exe (available in Wine 9.3+).
 printf "%s\n" wine-9.3 $(WINEDEBUG=-all $(command -v wine64 || command -v wine) --version) | sort -VC || EXIT
 
-EXEC "" TestRealPath cl_exe             $(. "${BIN}msvcenv.sh" && echo $BINDIR)/cl.exe
-EXEC "" TestRealPath rc_exe             $(. "${BIN}msvcenv.sh" && echo $SDKBINDIR)/rc.exe
-EXEC "" TestRealPath MSBuild_exe        $(. "${BIN}msvcenv.sh" && echo $MSBUILDBINDIR)/MSBuild.exe
+EXEC "" TestRealPath cl_exe             "$(. "${BIN}msvcenv.sh" && echo "$BINDIR_UNIX")/cl.exe"
+EXEC "" TestRealPath rc_exe             "$(. "${BIN}msvcenv.sh" && echo "$SDKBINDIR_UNIX")/rc.exe"
+EXEC "" TestRealPath MSBuild_exe        "$(. "${BIN}msvcenv.sh" && echo "$MSBUILDBINDIR_UNIX")/MSBuild.exe"
 
 EXIT

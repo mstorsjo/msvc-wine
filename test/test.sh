@@ -22,6 +22,7 @@ num_of_tests=0
 num_of_fails=0
 
 EXEC() {
+    export WINEDEBUG="-all"
     local output=$1
     if [ -n "$output" ]; then
         local stdout="$output.out"
