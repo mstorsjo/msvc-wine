@@ -84,9 +84,21 @@ else
 
 	cleanup && mkfifo $WINE_MSVC_STDOUT $WINE_MSVC_STDERR || exit 1
 
-	"$WINE" "$MSVCTRICKS_EXE" "$EXE" "${ARGS[@]}" &>/dev/null &
+	# Open both ends of each FIFO here, before starting anything, so that
+	# nothing below can block in open() if wine exits without opening them:
+	# fd 3 and 4 are write ends (<> is O_RDWR, which doesn't block on a FIFO),
+	# which keep the readers from seeing EOF until wine has exited, and fd 5
+	# and 6 are the read ends for sed (they don't block, since we are a
+	# writer). The children must not inherit our write ends.
+	exec 3<>$WINE_MSVC_STDOUT 4<>$WINE_MSVC_STDERR 5<$WINE_MSVC_STDOUT 6<$WINE_MSVC_STDERR
+	"$WINE" "$MSVCTRICKS_EXE" "$EXE" "${ARGS[@]}" &>/dev/null 3>&- 4>&- 5<&- 6<&- &
 	pid=$!
-	sed -E "$WINE_MSVC_STDOUT_SED" <$WINE_MSVC_STDOUT     || kill $pid &>/dev/null &
-	sed -E "$WINE_MSVC_STDERR_SED" <$WINE_MSVC_STDERR >&2 || kill $pid &>/dev/null &
+	{ sed -E "$WINE_MSVC_STDOUT_SED"     || kill $pid &>/dev/null; } <&5 3>&- 4>&- 5<&- 6<&- &
+	{ sed -E "$WINE_MSVC_STDERR_SED" >&2 || kill $pid &>/dev/null; } <&6 3>&- 4>&- 5<&- 6<&- &
+	exec 5<&- 6<&-
 	wait $pid &>/dev/null
+	status=$?
+	# Close our write ends, so sed sees EOF once wine's are closed too.
+	exec 3>&- 4>&-
+	exit $status
 fi
