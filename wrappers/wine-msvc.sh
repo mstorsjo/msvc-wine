@@ -14,11 +14,11 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-MSVCTRICKS_EXE="$(dirname $0)/../msvctricks.exe"
-EXE=$1
+msvctricks_exe=$(dirname -- "$0")/../msvctricks.exe
+exe=$1
 shift
 
-ARGS=()
+args=()
 for a; do
 	path=
 	case "$a" in
@@ -50,43 +50,37 @@ for a; do
 	*)
 		;;
 	esac
-	if [ -n "$path" ] && [ -d "$(dirname "$path")" ] && [ "$(dirname "$path")" != "/" ]; then
+	if [ -n "$path" ] && [ -d "$(dirname -- "$path")" ] && [ "$(dirname -- "$path")" != "/" ]; then
 		opt=${a%$path}
 		a=${opt}z:$path
 	fi
-	ARGS+=("$a")
+	args+=("$a")
 done
 
-WINE=$(command -v wine64 || command -v wine || false)
+wine=$(command -v wine64 || command -v wine || false)
 export WINEDEBUG=${WINEDEBUG:-"-all"}
 
-if [ -n "$WINE_MSVC_RAW_STDOUT" ]; then
-	"$WINE" "$EXE" "${ARGS[@]}"
-	exit $?
+WINE_MSVC_STDOUT_SED='s/\r//;'$WINE_MSVC_STDOUT_SED
+WINE_MSVC_STDERR_SED='s/\r//;'$WINE_MSVC_STDERR_SED
+if ! [ -f "$msvctricks_exe" ]; then
+	exec 2> >(sed -E "$WINE_MSVC_STDERR_SED" >&2) > >(sed -E "$WINE_MSVC_STDOUT_SED")
+fi
+if ! [ -f "$msvctricks_exe" ] || [ -n "$WINE_MSVC_RAW_STDOUT" ]; then
+	exec -- "$wine" "$exe" "${args[@]}" || exit 1
 fi
 
-WINE_MSVC_STDOUT_SED='s/\r//;'"$WINE_MSVC_STDOUT_SED"
-WINE_MSVC_STDERR_SED='s/\r//;'"$WINE_MSVC_STDERR_SED"
+export WINE_MSVC_STDOUT=${TMPDIR:-/tmp}/wine-msvc.stdout.$$
+export WINE_MSVC_STDERR=${TMPDIR:-/tmp}/wine-msvc.stderr.$$
 
-if [ ! -f "$MSVCTRICKS_EXE" ]; then
-	"$WINE" "$EXE" "${ARGS[@]}" 2> >(sed -E "$WINE_MSVC_STDERR_SED" >&2) | sed -E "$WINE_MSVC_STDOUT_SED"
-	exit $PIPESTATUS
-else
-	export WINE_MSVC_STDOUT=${TMPDIR:-/tmp}/wine-msvc.stdout.$$
-	export WINE_MSVC_STDERR=${TMPDIR:-/tmp}/wine-msvc.stderr.$$
+cleanup() {
+	wait
+	rm -f -- "$WINE_MSVC_STDOUT" "$WINE_MSVC_STDERR"
+}
+trap cleanup EXIT
+cleanup && mkfifo -- "$WINE_MSVC_STDOUT" "$WINE_MSVC_STDERR" || exit 1
 
-	cleanup() {
-		wait
-		rm -f $WINE_MSVC_STDOUT $WINE_MSVC_STDERR
-	}
-
-	trap cleanup EXIT
-
-	cleanup && mkfifo $WINE_MSVC_STDOUT $WINE_MSVC_STDERR || exit 1
-
-	"$WINE" "$MSVCTRICKS_EXE" "$EXE" "${ARGS[@]}" &>/dev/null &
-	pid=$!
-	sed -E "$WINE_MSVC_STDOUT_SED" <$WINE_MSVC_STDOUT     || kill $pid &>/dev/null &
-	sed -E "$WINE_MSVC_STDERR_SED" <$WINE_MSVC_STDERR >&2 || kill $pid &>/dev/null &
-	wait $pid &>/dev/null
-fi
+"$wine" "$msvctricks_exe" "$exe" "${args[@]}" &>/dev/null &
+pid=$!
+sed -E "$WINE_MSVC_STDOUT_SED" <"$WINE_MSVC_STDOUT"     || kill $pid &>/dev/null &
+sed -E "$WINE_MSVC_STDERR_SED" <"$WINE_MSVC_STDERR" >&2 || kill $pid &>/dev/null &
+wait $pid &>/dev/null
