@@ -87,7 +87,7 @@ ${MSBUILD//=1/=0}
 ${DEVCMD//=1/=0}
 EOF
 
-EXEC MsvcVersion "${verify_selection[@]}" --msvc-version 17.13 <<EOF
+EXEC MsvcVersion "${verify_selection[@]}" --msvc-version 14.43 <<EOF
 ${MSVC16//VERSION/14.43.17.13}
 Win11SDK_10.0.22621
 ${MSVC//=1/=0}
@@ -98,7 +98,7 @@ ${DIASDK}
 ${MSBUILD//=1/=0}
 EOF
 
-EXEC MsvcVersion+SpecificPackage "${verify_selection[@]}" --msvc-version 17.13 ${GIT} <<EOF
+EXEC MsvcVersion+SpecificPackage "${verify_selection[@]}" --msvc-version 14.43 ${GIT} <<EOF
 ${MSVC16//VERSION/14.43.17.13}
 Win11SDK_10.0.22621
 ${GIT}
@@ -110,7 +110,7 @@ ${DIASDK}
 ${MSBUILD//=1/=0}
 EOF
 
-EXEC MsvcVersion+SdkVersion "${verify_selection[@]}" --msvc-version 17.13 --sdk-version 10.0.26100 <<EOF
+EXEC MsvcVersion+SdkVersion "${verify_selection[@]}" --msvc-version 14.43 --sdk-version 10.0.26100 <<EOF
 ${MSVC16//VERSION/14.43.17.13}
 Win11SDK_10.0.26100
 ${MSVC//=1/=0}
@@ -144,7 +144,7 @@ ${MSBUILD//=1/=0}
 ${DEVCMD//=1/=0}
 EOF
 
-EXEC MsvcVersion+SdkVersion+SpecificPackage "${verify_selection[@]}" --msvc-version 17.13 --sdk-version 10.0.26100 ${GIT} <<EOF
+EXEC MsvcVersion+SdkVersion+SpecificPackage "${verify_selection[@]}" --msvc-version 14.43 --sdk-version 10.0.26100 ${GIT} <<EOF
 ${MSVC16//VERSION/14.43.17.13}
 Win11SDK_10.0.26100
 ${GIT}
