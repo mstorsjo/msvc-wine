@@ -107,7 +107,7 @@ jobs:
           mkdir ffmpeg-build
           cd ffmpeg-build
           export PATH=$(pwd)/../msvc/bin/arm64:$PATH
-          ../ffmpeg/configure --arch=arm64 --target-os=win32 --toolchain=msvc --enable-cross-compile --prefix=$(pwd)/../install
+          ../ffmpeg/configure --arch=arm64 --target-os=win32 --toolchain=msvc --enable-cross-compile --prefix=$(pwd)/../install --disable-doc
           make -j$(nproc)
           make install
       # The build output from MSVC actually is redistributable, even if the
