@@ -994,6 +994,13 @@ def moveVCSDK(unpack, dest):
     for dir in filter(None, components):
         mergeTrees(os.path.join(unpack, dir), os.path.join(dest, dir))
 
+def find_executable(name):
+    for directory in os.get_exec_path():
+        path = os.path.join(directory, name)
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    return None
+
 if __name__ == "__main__":
     parser = getArgsParser()
     args = parser.parse_args()
@@ -1030,6 +1037,16 @@ if __name__ == "__main__":
             response = input("Do you accept the license? Answer \"yes\" or \"no\": ")
         if response == "no":
             sys.exit(0)
+
+    if sys.platform != "win32":
+        path = find_executable('msiextract')
+        if path == None:
+            msg = "Warning: msiextract is not in PATH! Continue anyway (yes/no)? "
+            response = input(msg)
+            while response != "yes" and response != "no":
+                response = input(msg)
+            if response == "no":
+                sys.exit(0)
 
     if args.list_components or args.list_workloads or args.list_packages:
         if args.list_components:
