@@ -28,4 +28,16 @@ for config in Debug Release; do
     done
 done
 
+CMAKEDIR=$(. "${BIN}msvcenv.sh" && echo $CMAKEDIR)
+if [ -d "$CMAKEDIR" ]; then
+    # Check the default generator.
+    export CMAKE_GENERATOR=
+    EXEC cmake-help ${BIN}cmake.exe --help
+    EXEC "" grep -q '* Visual Studio 18 2026' cmake-help.out || grep '*' cmake-help.out
+
+    EXEC "" ${BIN}cmake.exe -S "$TESTS" -B cmake-msbuild
+    EXEC "" ${BIN}cmake.exe --build cmake-msbuild --config Debug -- /v:n
+    EXEC "" ${BIN}cmake.exe --build cmake-msbuild --config Release -- /v:n
+fi
+
 EXIT
