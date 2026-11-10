@@ -162,8 +162,7 @@ foreach ($target in $TargetArchs) {
         EXEC "" @PWSH test-vcpkg.ps1 @CommonArgs
     }
 
-    # Running msbuild currently fails.
-    # EXEC "" @PWSH test-msbuild.ps1 @CommonArgs
+    EXEC "" @PWSH test-msbuild.ps1 @CommonArgs
 }
 
 QUIT
