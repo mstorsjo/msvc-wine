@@ -135,6 +135,8 @@ if ($sourced) {
     Set-Location $CWD
 }
 
+$VCToolsVersion = Get-Content -Path $([IO.Path]::Combine($Root, 'VC', 'Auxiliary', 'Build', 'Microsoft.VCToolsVersion.default.txt')) -Raw
+
 if ($Arch) {
     $TargetArchs = @($Arch)
 } else {
@@ -144,20 +146,7 @@ if ($Arch) {
 }
 
 foreach ($target in $TargetArchs) {
-    $vcvars = if ($HostArch -eq $target) {
-        switch ($target) {
-            'x86' { "vcvars32.bat" }
-            'x64' { "vcvars64.bat" }
-            default { "vcvars${target}.bat" }
-        }
-    } else {
-        $vcvars_host = if ($HostArch -eq 'x64') { 'amd64' } else { $HostArch }
-        $vcvars_target = if ($target -eq 'x64') { 'amd64' } else { $target }
-        "vcvars${vcvars_host}_${vcvars_target}.bat"
-    }
-
-    $vcvars = [IO.Path]::Combine($Root, 'VC', 'Auxiliary', 'Build', $vcvars)
-    if (-not (Test-Path $vcvars)) {
+    if (-not (Test-Path $([IO.Path]::Combine($Root, 'VC', 'Tools', 'MSVC', $VCToolsVersion, 'bin', "Host$HostArch", $target, 'cl.exe')))) {
         continue
     }
 
