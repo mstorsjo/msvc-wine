@@ -214,10 +214,17 @@ def setPackageSelection(args, packages):
     def ide(ver):
         # https://learn.microsoft.com/en-us/cpp/overview/compiler-versions
         # MSVC versioning is decoupled from Visual Studio versioning since 2026.
-        # We will stop to treat a IDE version as the MSVC Build Tools version,
+        # Passing a IDE version to --msvc-version is deprecated and will be disabled,
         # by returning None in one day, if MSVC versions start to conflict
         # with IDE versions.
-        return ver
+        class Version(str):
+            def __eq__(self, ver):
+                if super().__eq__(ver) is True:
+                    print(f"WARNING: Passing IDE version {ver} to --msvc-version is deprecated. "
+                          "Specify a MSVC Build Tools version instead.")
+                    return True
+                return False
+        return Version(ver)
 
     # Note, that in the manifest for MSVC version X.Y, only version X.Y-1
     # exists with a package name like "Microsoft.VisualStudio.Component.VC."
