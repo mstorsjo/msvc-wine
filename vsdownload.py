@@ -420,7 +420,7 @@ def getManifest(args):
 
     return manifest
 
-def prioritizePackage(arch, a, b):
+def prioritizePackage(arch, language, a, b):
     def archOrd(k, x):
         if arch is None:
             return 0
@@ -436,7 +436,7 @@ def prioritizePackage(arch, a, b):
         if r != 0:
             return r
 
-    lang = args.language.lower()
+    lang = language.lower()
     countrylang = "-" in lang
     alangpriority = 0
     blangpriority = 0
@@ -458,7 +458,7 @@ def prioritizePackage(arch, a, b):
         return 1
     return 0
 
-def getPackages(manifest, arch):
+def getPackages(manifest, arch, language="en"):
     packages = {}
     for p in manifest["packages"]:
         id = p["id"].lower()
@@ -466,7 +466,7 @@ def getPackages(manifest, arch):
             packages[id] = []
         packages[id].append(p)
     for key in packages:
-        packages[key] = sorted(packages[key], key=functools.cmp_to_key(functools.partial(prioritizePackage, arch)))
+        packages[key] = sorted(packages[key], key=functools.cmp_to_key(functools.partial(prioritizePackage, arch, language)))
     return packages
 
 def listPackageType(packages, type):
@@ -1021,7 +1021,7 @@ if __name__ == "__main__":
     else:
         print("Install packages for %s host architecture" % args.host_arch)
 
-    packages = getPackages(getManifest(args), args.host_arch)
+    packages = getPackages(getManifest(args), args.host_arch, args.language)
 
     if args.print_version:
         sys.exit(0)
